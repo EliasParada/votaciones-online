@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Candidatos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <style>
+        .compress {
+            height: 0;
+            overflow: hidden;
+            overflow-y: scroll;
+            transition: all 0.5s;
+        }
+        .desplegable {
+            height: 200px;
+            overflow-y: scroll;
+            transition: all 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="admin">Administrar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="admincandidato">Candidatos <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="adminpartido">Paridos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="adminusuario">Usuarios</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Administrar</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header" id="desplegar">
+                        <h5>Agregar candidato</h5>
+                    </div>
+                </div>
+                <form action="" method="post" enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Carlos José Ortega Martinéz" 
+                                pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="partido">Partido</label>
+                                <select name="partido" id="partido" class="form-control">
+                                    <option value="">Seleccione un partido</option>
+                                        
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="foto">Foto</label>
+                                <input type="file" class="form-control" name="foto" id="foto" placeholder="Foto">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" name="email" id="email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono</label>
+                                <input type="text" name="telefono" id="telefono" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-secondary form-control mt-4">Agregar</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                        <div class="form-group">
+                            <button type="reset" class="btn btn-warning form-control mt-4">Reset</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
+                </div>
+            </div>
+        </div>            
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Lista de candidatos</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-striped" id="tblCandidato">
+                    <thead>
+                        <tr>
+                            <th colspan="8">
+                                <input class="form-control" placeholder="Buscar candidato" type="text" 
+                                    name="txtBuscar" id="txtBuscar">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Partido</th>
+                            <th>Email</th>
+                            <th>Telefono</th>
+                            <th>Fecha de nacimiento</th>
+                            <th>Foto</th>
+                            <th>Control</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+    <script>
+        function limpiarcampos(){
+            $("#frmAgregar")[0].reset();
+        }
+        function mostrarPartidos(){
+            $.get('http://localhost:8000/mostrar_partidos', (resp, status) => {
+                if (resp.response.length > 0) {
+                    $('#partido').html('');
+                    $('#partido').append('<option value="">Seleccione un partido</option>');
+                    resp.response.forEach(partido => {
+                        $('#partido').append('<option value="'+partido.Id_Partido+'">'+partido.Nombre+'</option>');
+                    });
+                } else {
+                    console.log(resp.msg);
+                }
+            }, 'json');
+        }
+
+        function eliminarCandidato(id){
+            $.post('http://localhost:8000/eliminar_candidato', {id: id}, (resp, status) => {
+                if (resp.response.length > 0) {
+                    $('#mensaje').html('');
+                    $('#mensaje').append('<p>'+resp.msg+'</p>');
+                    $('#mensaje').removeClass('d-none');
+                    $('#mensaje').addClass('d-block');
+                    setTimeout(() => {
+                        $('#mensaje').removeClass('d-block');
+                        $('#mensaje').addClass('d-none');
+                    }, 3000);
+                    mostrarCandidatos();
+                } else {
+                    console.log(resp.msg);
+                }
+            }, 'json');
+        }
+
+        function mostrarCandidatos(){
+            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+                console.log(resp);
+                $('#tblCandidato tbody').html('');
+                let tbody = $('#tblCandidato tbody'),
+                    html = '';
+                if (resp.response.length > 0) {
+                    resp.response.forEach(candidato => {
+                        html += `
+                            <tr>
+                                <td>${candidato.Id_Candidato}</td>
+                                <td>${candidato.Nombre}</td>
+                                <td>${candidato.Nombre_Partido}</td>
+                                <td>${candidato.Correo}</td>
+                                <td>${candidato.Telefono}</td>
+                                <td>${candidato.Fecha_Nacimiento}</td>
+                                <td><img src="${candidato.Img_Src}" width="100" height="100"></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm m-1" onclick="actualizarCandidato(${candidato.Id_Candidato})">
+                                        <i class="fa fa-pencil">Actualizar</i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm m-1" onclick="eliminarCandidato(${candidato.Id_Candidato})">
+                                        <i class="fa fa-trash">Eliminar</i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = `
+                        <tr>
+                            <td colspan="8">
+                                <div class="alert alert-warning" role="alert">
+                                    No hay candidatos registrados
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    console.log(resp.msg);
+                }
+                tbody.append(html);
+            }, 'json');
+        }
+        $(document).ready(function(){
+            mostrarPartidos();
+            mostrarCandidatos();
+
+            $('#frmAgregar').on('reset', e => {
+                limpiarcampos();
+            });
+
+            $('#frmAgregar').submit(e => {
+                e.preventDefault();
+                let name = $('#nombre').val(),
+                    partido = $('#partido').val(),
+                    email = $('#email').val(),
+                    telefono = $('#telefono').val(),
+                    fecha_nacimiento = $('#fecha_nacimiento').val(),
+                    foto = $('#foto').val(),
+                    data = {name, partido, email, telefono, fecha_nacimiento, foto};
+
+                $.post('http://localhost:8000/agregar_candidato', JSON.stringify(data), (resp, status) => {
+                    resp = JSON.parse(resp);
+                    console.log(resp);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.status);
+                    if (resp.response.status == 'ok') {
+                        limpiarcampos();
+                        $("#mensaje")
+                            .removeClass("alert-danger")
+                            .addClass("alert-success");
+                        mostrarCandidatos();
+                    } else {
+                        $("#mensaje")
+                            .removeClass("alert-success")
+                            .addClass("alert-danger");
+                    }
+                    setTimeout(()=>{
+                        $("#mensaje").toggleClass("d-none");
+                    },5000);
+                });
+            });
+
+            $('#desplegar').click(function(){
+                //Toggle class
+                $('#frmAgregar').toggleClass('compress');
+                $('#frmAgregar').toggleClass('desplegable');
+            });
+        });
+    </script>
+</body>
+</html>
