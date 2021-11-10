@@ -49,7 +49,7 @@
                             <h3>Registro</h3>
                         </div>
                         <div class="card-body">
-                            <form action="index.html" method="POST" id="frmRegistro">
+                            <form action="index.html" method="POST" id="frmRegistro" data-action="insertar">
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         <label for="foto">Foto</label>
@@ -118,26 +118,29 @@
 
                 $.post('http://localhost:8000/ingresar', JSON.stringify(data), (resp) => {
                     resp = JSON.parse(resp);
-                    if (resp.status == 'ok') {
+                    console.log(resp);
+                    if (resp.response.status == 'ok') {
                         window.location.href = 'http://localhost:8000/index';
                     } else {
-                        console.log(resp.code);
+                        console.log(resp.response.code);
                     }
                 });
             });
 
             $('#frmRegistro').submit(e => {
                 e.preventDefault();
-                let name = $('#frmRegistro #name').val(),
+                let action = $('#frmRegistro').data('action'),
+                    name = $('#frmRegistro #name').val(),
                     dui = $('#frmRegistro #dui').val(),
                     tel = $('#frmRegistro #tel').val(),
                     email = $('#frmRegistro #email').val(),
                     password = $('#frmRegistro #password').val(),
                     foto = $('#frmRegistro #foto')[0].files[0].name,
-                    data = {name, dui, tel, email, password, foto};
+                    data = {action, name, dui, tel, email, password, foto};
 
-                $.post('http://localhost:8000/agregar_usuario', JSON.stringify(data), (res, estatus) => {
+                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {
                     res = JSON.parse(res);
+                    console.log(res);
                     if (res.status == 'ok') {
                         window.location.href = 'http://localhost:8000/index';
                     } else {

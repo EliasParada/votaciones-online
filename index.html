@@ -12,25 +12,25 @@
         <!-- Menu -->
         <div id="menu">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <a class="navbar-brand" href="index.html">Elecciones</a>
+                <a class="navbar-brand" href="index">Elecciones</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item active">
-                            <a class="nav-link disabled" href="index.html">Inicio</a>
+                            <a class="nav-link disabled" href="index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="candidatos.html">Candidatos</a>
+                            <a class="nav-link" href="candidatos">Candidatos</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Cuenta
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <a class="dropdown-item" href="user.html">Perfil</a>
-                                <a class="dropdown-item" href="login.html">Cerrar sesión</a>
+                                <a class="dropdown-item" href="user">Perfil</a>
+                                <a class="dropdown-item" href="login">Cerrar sesión</a>
                             </ul>
                         </li>
                     </ul>
@@ -79,8 +79,9 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-12">
+                    <div class="col-sm-12" id="grafica">
                         <canvas id="myChart" width="400" height="400"></canvas>
+                        <legend for="myChart"></legend>
                     </div>
                 </div>
             </div>
@@ -88,10 +89,155 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <!-- Always remember to call the above files first before calling the bootstrap.min.js file -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+    <script>
+        
+        function randomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        $(document).ready(function(){
+            let myCanvas = document.getElementById("myChart");
+            myCanvas.width = 600;
+            myCanvas.height = 400;
+            let ctx = myCanvas.getContext("2d");
+
+            function drawLine(ctx, startX, startY, endX, endY, color) {
+                ctx.save();
+                ctx.strokeColor = color;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                ctx.restore();
+            }
+            function drawBar(ctx, x, y, width, height, color) {
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, width, height);
+                ctx.restore();
+            }
+
+            let elections = {'candidato1':10, 'candidato2':20, 'candidato3':30, 'candidato4':40, 'candidato5':50};
+
+            let barChar = function(data) {
+                this.options = data;
+                this.canvas = data.canvas;
+                this.ctx = data.canvas.getContext("2d");
+                this.colors = data.colors;
+
+                this.draw = function() {
+                    let maxVotes = 0;
+                    for (let key in this.options.data) {
+                        maxVotes = Math.max(maxVotes, this.options.data[key]);
+                    }
+                    let canvasActualHeight = this.canvas.height - this.options.padding * 2;
+                    let canvasActualWidth = this.canvas.width - this.options.padding * 2;
+                    
+                    // drawing the grid lines
+                    let gridValue = 0;
+                    while (gridValue <= maxVotes) {
+                        let gridY = canvasActualHeight * (1 - gridValue / maxVotes) + this.options.padding;
+                        drawLine(
+                            this.ctx,
+                            0,
+                            gridY,
+                            this.canvas.width,
+                            gridY,
+                            this.options.gridColor
+                        );
+
+                        //writing grid markers
+                        this.ctx.save();
+                        this.ctx.fillStyle = this.options.gridColor;
+                        this.ctx.font = "bold 10px Arial";
+                        this.ctx.fillText(gridValue, 10, gridY - 2);
+                        this.ctx.restore();
+
+                        gridValue += this.options.gridScale;
+                    }
+
+                    //drawing the bars
+                    let barIndex = 0;
+                    let numberOfBars = Object.keys(this.options.data).length;
+                    let barSize = (canvasActualWidth) / numberOfBars;
+
+                    for (let key in this.options.data) {
+                        let val = this.options.data[key];
+                        let barHeight = Math.round(canvasActualHeight * val/ maxVotes);
+                        // let barX = this.options.padding + barIndex * barSize;
+
+                        drawBar(
+                            this.ctx,
+                            this.options.padding + barIndex * barSize,
+                            this.canvas.height - barHeight - this.options.padding,
+                            barSize,
+                            barHeight,
+                            this.colors[barIndex%this.colors.length]
+                        );
+                        barIndex++;
+                    }
+
+                    this.ctx.save();
+                    this.ctx.textAlign = "center";
+                    this.ctx.textBaseline = "bottom";
+                    this.ctx.fillStyle = "white";
+                    this.ctx.font = "bold 14px Arial";
+                    let candidatos = Object.keys(this.options.data);
+                    for (let i = 0; i < candidatos.length; i++) {
+                        let candidato = candidatos[i];
+                        let barX = this.options.padding + i * barSize;
+                        let barWidth = barSize;
+
+                        this.ctx.fillText(candidato, barX + barWidth / 2, this.canvas.height - this.options.padding);
+                    }
+                    this.ctx.restore();
+                    
+                    //drwaing the legend
+                    // let legend = document.querySelector("legend[for='myChart']");
+                    // let ul = document.createElement("ul");
+                    // legend.append(ul);
+                    // let width = canvasActualWidth / numberOfBars;
+                    // console.log(width);
+                    // for (let key in this.options.data) {
+                    //     let li = document.createElement("li");
+                    //     li.style.listStyle = "none";
+                    //     li.style.padding = "5px";
+                    //     li.style.fontSize = width + "%";
+                    //     li.style.float = "left";
+                    //     li.style.color = this.colors[barIndex%this.colors.length];
+                    //     li.style.borderLeft = "10px solid " + this.colors[barIndex%this.colors.length];
+                    //     li.style.borderRight = "10px solid " + this.colors[barIndex%this.colors.length];
+                    //     li.textContent = key;
+                    //     ul.append(li);
+                    //     barIndex++;
+                    // }
+                    
+                }
+            }
+
+            // Hacer un array de colores segun el numero de candidatos
+            let colors = [];
+            for (let i = 0; i < Object.keys(elections).length; i++) {
+                colors.push(randomColor());
+            }
+            let myChart = new barChar({
+                canvas: myCanvas,
+                data: elections,
+                padding: 10,
+                gridScale: 5,
+                gridColor: "#eee",
+                colors: colors
+            });
+            myChart.draw();
+            
+        });
+    </script>
 </body>
 </html>

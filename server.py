@@ -11,32 +11,83 @@ class crud():
         if self.conn.is_connected():
             print('Conectado a la base de datos')
         else:
-            print('No se pudo conectar a la base de datos')   
-    
-    def agregar_usuario(self, dui, nombre, telefono, correo, contra, src):
-        try:
-            cursor = self.conn.cursor()
-            sql = "INSERT INTO usuarios (Id_Usuario, DUI, Nombre, Telefono, Correo, Contrasegna, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            val = (self.crear_id('usuarios'), dui, nombre, telefono, correo, contra, src)
-            cursor.execute(sql, val)
-            self.conn.commit()
-            return {'status': 'ok', 'msg': 'Registro exitoso'}
-        except mysql.connector.Error as err:
-            return {'status':'error', 'msg': 'No se ha podido registrar el usuario', 'code': str(err)}
+            print('No se pudo conectar a la base de datos')
 
-    def ingresar(self, dui, nombre, contra):
+    #FUNCION PARA EJECUTAR SQL
+    def ejecutar_sql(self, sql, value):
         try:
             cursor = self.conn.cursor()
-            sql = "SELECT * FROM usuarios WHERE DUI = %s AND Nombre = %s AND Contrasegna = %s"
-            val = (dui, nombre, contra)
+            cursor.execute(sql, value)
+            self.conn.commit()
+            return {'status': 'ok', 'msg': 'Se han realizado los cambios correctamente'}
+        except mysql.connector.Error as err:
+            return {'status':'error', 'msg': 'No se pudo realizar la consulta', 'code': str(err)}
+
+    #FUNCION PARA ADMINISTRAR CANDIDATOS
+    def administrar_candidatos(self, candidato):
+        try:
+            print(candidato)
+            if candidato['action'] == 'insertar':
+                sql = "INSERT INTO candidatos (Id_Candidato, Nombre, Partido, Correo, Telefono, Fecha_Nacimiento, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                val = (self.crear_id('candidatos'), candidato['name'], candidato['partido'], candidato['email'], candidato['telefono'], candidato['fecha_nacimiento'], candidato['foto'])
+            elif candidato['action'] == 'actualizar':
+                sql = "UPDATE candidatos SET Nombre = %s, Partido = %s, Correo = %s, Telefono = %s, Fecha_Nacimiento = %s, Img_Src = %s WHERE Id_Candidato = %s"
+                val = (candidato['name'], candidato['partido'], candidato['email'], candidato['telefono'], candidato['fecha_nacimiento'], candidato['foto'], candidato['id'])
+            elif candidato['action'] == 'eliminar':
+                sql = "DELETE FROM candidatos WHERE Id_Candidato = %s"
+                val = (candidato['id'],)
+            else:
+                print('Accion no valida')
+            return self.ejecutar_sql(sql, val)
+        except Exception as e:
+            return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
+    
+    #FUNCION PARA ADMINISTRAR PARTIDOS
+    def administrar_partidos(self, partido):
+        try:
+            if partido['action'] == 'insertar':
+                sql = "INSERT INTO partidos (Id_Partido, Nombre, Siglas) VALUES (%s, %s, %s)"
+                val = (self.crear_id('partidos'), partido['name'], partido['siglas'])
+            elif partido['action'] == 'actualizar':
+                sql = "UPDATE partidos SET Nombre = %s, Siglas = %s WHERE Id_Partido = %s"
+                val = (partido['name'], partido['siglas'], partido['id'])
+            elif partido['action'] == 'eliminar':
+                sql = "DELETE FROM partidos WHERE Id_Partido = %s"
+                val = (partido['id'],)
+            else:
+                print('Accion no valida')
+            return self.ejecutar_sql(sql, val)
+        except Exception as e:
+            return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
+
+    #CONSULTA PARA ADMINISTRAR USUARIOS
+    def administrar_usuarios(self, usuario):
+        try:
+            if usuario['action'] == 'insertar':
+                sql = "INSERT INTO usuarios (Id_Usuario, DUI, Nombre, Telefono, Correo, Contrasegna, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                val = (self.crear_id('usuarios'), usuario['dui'], usuario['name'], usuario['telefono'], usuario['correo'], usuario['password'], usuario['foto'])
+            elif usuario['action'] == 'actualizar':
+                sql = "UPDATE usuarios SET DUI = %s, Nombre = %s, Telefono = %s, Correo = %s, Contrasegna = %s, Img_Src = %s WHERE Id_Usuario = %s"
+                val = (usuario['dui'], usuario['name'], usuario['telefono'], usuario['correo'], usuario['password'], usuario['foto'], usuario['id'])
+            elif usuario['action'] == 'eliminar':
+                sql = "DELETE FROM usuarios WHERE Id_Usuario = %s"
+                val = (usuario['id'],)
+            else:
+                print('Accion no valida')
+            return self.ejecutar_sql(sql, val)
+        except Exception as e:
+            return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
+
+    def mostrar_perfil(self, dui):
+        try:
+            sql = "SELECT (Nombre, Telefono, Correo, Img_Src) FROM usuarios WHERE DUI = %s"
+            val = (dui,)
+            cursor = self.conn.cursor()
             cursor.execute(sql, val)
             result = cursor.fetchall()
-            if len(result) > 0:
-                return {'status': 'ok', 'msg': 'Inicio de sesión exitosa'}
-            else:
-                return {'status': 'error', 'msg': 'No se ha encontrado el usuario'}
-        except mysql.connector.Error as err:
-            return {'status':'error', 'msg': 'No se ha podido iniciar sesión', 'code': str(err)}
+            return result
+        except Exception as e:
+            return {'status':'error', 'msg': 'No se pudo realizar la consulta', 'code': str(e)}
 
     def mostrar_partidos(self):
         try:
@@ -70,27 +121,19 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los usuarios', 'code': str(err)}
 
-    def agregar_candidato(self, nombre, partido, correo, telefono, fecha_nacimiento, src):
+    def ingresar(self, dui, nombre, contra):
         try:
             cursor = self.conn.cursor()
-            sql = "INSERT INTO candidatos (Id_Candidato, Nombre, Partido, Correo, Telefono, Fecha_Nacimiento, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            val = (self.crear_id('candidatos'), nombre, partido, correo, telefono, fecha_nacimiento, src)
+            sql = "SELECT * FROM usuarios WHERE DUI = %s AND Nombre = %s AND Contrasegna = %s"
+            val = (dui, nombre, contra)
             cursor.execute(sql, val)
-            self.conn.commit()
-            return {'status': 'ok', 'msg': 'Registro exitoso'}
+            result = cursor.fetchall()
+            if len(result) > 0:
+                return {'status': 'ok', 'msg': 'Inicio de sesión exitosa'}
+            else:
+                return {'status': 'error', 'msg': 'No se ha encontrado el usuario'}
         except mysql.connector.Error as err:
-            return {'status':'error', 'msg': 'No se ha podido registrar el candidato', 'code': str(err)}
-
-    def agregar_partido(self, name, siglas):
-        try:
-            cursor = self.conn.cursor()
-            sql = "INSERT INTO partidos (Id_Partido, Nombre, Siglas) VALUES (%s, %s, %s)"
-            val = (self.crear_id('partidos'), name, siglas)
-            cursor.execute(sql, val)
-            self.conn.commit()
-            return {'status': 'ok', 'msg': 'Registro exitoso'}
-        except mysql.connector.Error as err:
-            return {'status':'error', 'msg': 'No se ha podido registrar el partido', 'code': str(err)}
+            return {'status':'error', 'msg': 'No se ha podido iniciar sesión', 'code': str(err)}
 
     def crear_id(self, table):
         try:
@@ -129,6 +172,18 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = '/admin.html'
             return SimpleHTTPRequestHandler.do_GET(self)
 
+        elif self.path == '/candidatos':
+            self.path = '/candidatos.html'
+            return SimpleHTTPRequestHandler.do_GET(self)
+        
+        elif self.path == '/partidos':
+            self.path = '/partidos.html'
+            return SimpleHTTPRequestHandler.do_GET(self)
+        
+        elif self.path == '/user':
+            self.path = '/user.html'
+            return SimpleHTTPRequestHandler.do_GET(self)
+
         elif self.path == '/admincandidato':
             self.path = '/admincandidato.html'
             return SimpleHTTPRequestHandler.do_GET(self)
@@ -158,23 +213,15 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
+        
+        elif self.path == '/perfil':
+            response = curd.mostrar_perfil(self.user)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
     def do_POST(self):
-        if self.path == '/registrar':
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-            data = data.decode('utf-8')
-            data = parse.unquote(data)
-            data = json.loads(data)
-
-            response = curd.agregar_usuario(data['dui'], data['name'], data['tel'], data['email'], data['password'], data['foto'])
-            print(response)
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
-
-        elif self.path == '/ingresar':
+        if self.path == '/ingresar':
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
             data = data.decode('utf-8')
@@ -182,11 +229,13 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(data)
 
             result = curd.ingresar(data['dui'], data['name'], data['password'])
+            print(result)
             if result['status'] == 'ok':
-                self.user = data['name']
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(json.dumps(dict(response=result)).encode('utf-8'))
             
         elif self.path == '/guardarFoto':
-            #Guardar la foto en la carpeta profile
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
             data = data.decode('utf-8')
@@ -200,42 +249,6 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
 
-        elif self.path == '/agregar_candidato':
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-            data = data.decode('utf-8')
-            data = parse.unquote(data)
-            data = json.loads(data)
-            response = curd.agregar_candidato(data['name'], data['partido'], data['email'], data['telefono'], data['fecha_nacimiento'], data['foto'])
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
-
-        elif self.path == '/agregar_partido':
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-            data = data.decode('utf-8')
-            data = parse.unquote(data)
-            data = json.loads(data)
-            response = curd.agregar_partido(data['name'], data['siglas'])
-            print(response)
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
-
-        elif self.path == '/agregar_usuario':
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-            data = data.decode('utf-8')
-            data = parse.unquote(data)
-            data = json.loads(data)
-            print(data)
-            response = curd.agregar_usuario(data['dui'], data['name'], data['telefono'], data['correo'], data['password'], data['foto'])
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
-
-
         elif self.path == '/logout':
             self.user = None
             response = {'status': 'ok', 'msg': 'Sesión cerrada'}
@@ -244,21 +257,45 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
 
-        elif self.path == '/mostrar_usuario':
-            response = curd.mostrar_usuario(self.user)
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
-
-        elif self.path == '/mostrar_partido':
+        #CONSULTAS PARA CANDIDATOS
+        elif self.path == '/administrar_candidatos':
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
             data = data.decode('utf-8')
+            data = parse.unquote(data)
+            data = json.loads(data)
+            response = curd.administrar_candidatos(data)
+            print(response)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
-        elif self.path == '/eliminar_candidato':
+        #CONSULTAS PARA PARTIDOS
+        elif self.path == '/administrar_partidos':
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
+            data = data.decode('utf-8')
+            data = parse.unquote(data)
+            data = json.loads(data)
+            print(data)
+            response = curd.administrar_partidos(data)
+            print(response)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
+        
+        #CONSULTAS PARA USUARIOS
+        elif self.path == '/administrar_usuarios':
+            content_length = int(self.headers['Content-Length'])
+            data = self.rfile.read(content_length)
+            data = data.decode('utf-8')
+            data = parse.unquote(data)
+            data = json.loads(data)
+            response = curd.administrar_usuarios(data)
+            print(response)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
 
 print('Servidor iniciado')

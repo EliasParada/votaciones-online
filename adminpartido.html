@@ -32,7 +32,7 @@
                     <a class="nav-link" href="admincandidato">Candidatos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="adminpartido">Paridos <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="adminpartido">Partidos <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="adminusuario">Usuarios</a>
@@ -48,23 +48,29 @@
         </div>
 
         <div class="row">
+            <div class="row">
+                <div class="position-fixed zindex-fixed" style="z-index: 20">
+                    <div class="col-md-6">
+                        <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-12">
                 <div class="card mb-3">
                     <div class="card-header" id="desplegar">
-                        <h5>Agregar candidato</h5>
+                        <h5>Agregar partido</h5>
                     </div>
                 </div>
-                <form action="" method="post" enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4">
+                <form enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4" data-action="insertar" data-id="0">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="nombre">Nombre</label>
                                 <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Partido Democratico Morado" 
                                 pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$" required>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="siglas">Siglas</label>
@@ -85,18 +91,12 @@
                         </div>
                     </div>
                 </form>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div>                
+        </div>    
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3>Lista de candidatos</h3>
+                    <h3>Lista de partidos</h3>
                 </div>
             </div>
         </div>
@@ -137,22 +137,18 @@
 
         function mostrarPartidos(){
             $.get('http://localhost:8000/mostrar_partidos', (resp, status) => {
-                console.log(resp);
                 $('#tblCandidato tbody').html('');
                 let tbody = $('#tblCandidato tbody'),
                     html = '';
                 if (resp.response.length > 0) {
-                    resp.response.forEach(candidato => {
+                    resp.response.forEach(partido => {
                         html += `
-                            <tr>
-                                <td>${candidato.Id_Partido}</td>
-                                <td>${candidato.Nombre}</td>
-                                <td>${candidato.Siglas}</td>
+                            <tr onclick='actualizarPartido(${JSON.stringify(partido)})'>
+                                <td>${partido.Id_Partido}</td>
+                                <td>${partido.Nombre}</td>
+                                <td>${partido.Siglas}</td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm m-1" onclick="actualizarCandidato(${candidato.Id_Candidato})">
-                                        <i class="fa fa-pencil">Actualizar</i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm m-1" onclick="eliminarCandidato(${candidato.Id_Candidato})">
+                                    <button class="btn btn-danger btn-sm m-1" onclick='eliminarPartido(${JSON.stringify(partido)})'>
                                         <i class="fa fa-trash">Eliminar</i>
                                     </button>
                                 </td>
@@ -174,33 +170,73 @@
                 tbody.append(html);
             }, 'json');
         }
+
+        function eliminarPartido(partido){
+            if (confirm(`¿Esta seguro de eliminar este partido: ${partido.Nombre}?`)) {
+                let data = {
+                    action: 'eliminar',
+                    id: partido.Id_Partido
+                };
+                $.post('http://localhost:8000/administrar_partidos', JSON.stringify(data), (resp, status) => {
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                        if (resp.response.status == 'ok') {
+                            limpiarcampos();
+                            $("#mensaje")
+                                .removeClass("alert-danger")
+                                .addClass("alert-success");
+                                mostrarCandidatos();
+                        } else {
+                            $("#mensaje")
+                                .removeClass("alert-success")
+                                .addClass("alert-danger");
+                            console.log(resp.msg);
+                        }
+                        setTimeout(()=>{
+                            $("#mensaje").toggleClass("d-none");
+                        },5000);
+                }, 'json');
+            }
+        }
+
+        function actualizarPartido(partido){
+            $("#frmAgregar")
+                .data('action', 'actualizar')
+                .data('id', partido.Id_Partido);
+            $("#nombre").val(partido.Nombre);
+            $("#siglas").val(partido.Siglas);
+        }
+
         $(document).ready(function(){
             mostrarPartidos();
-
             $('#frmAgregar').on('reset', e => {
                 limpiarcampos();
             });
 
             $('#frmAgregar').submit(e => {
                 e.preventDefault();
-                let name = $('#nombre').val(),
+                let action = $('#frmAgregar').data('action'),
+                    id = $('#frmAgregar').data('id'),
+                    name = $('#nombre').val(),
                     siglas = $('#siglas').val(),
-                    data = {name, siglas};
+                    data = {action, id, name, siglas};
 
-                $.post('http://localhost:8000/agregar_partido', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:8000/administrar_partidos', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
-                    console.log(resp);
-                    $("#mensaje").toggleClass("d-none").text(resp.response.status);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                     if (resp.response.status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")
                             .addClass("alert-success");
-                            mostrarPartidos();
+                        mostrarPartidos();
+                        $("#frmAgregar")
+                            .data('action', 'insertar')
+                            .data('id', 0);
                     } else {
                         $("#mensaje")
                             .removeClass("alert-success")
                             .addClass("alert-danger");
+                            console.log(resp.msg);
                     }
                     setTimeout(()=>{
                         $("#mensaje").toggleClass("d-none");
@@ -209,7 +245,6 @@
             });
 
             $('#desplegar').click(function(){
-                //Toggle class
                 $('#frmAgregar').toggleClass('compress');
                 $('#frmAgregar').toggleClass('desplegable');
             });

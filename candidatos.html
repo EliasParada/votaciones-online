@@ -11,25 +11,25 @@
     <div>
         <div id="menu">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <a class="navbar-brand" href="index.html">Elecciones</a>
+                <a class="navbar-brand" href="index">Elecciones</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item active">
-                            <a class="nav-link" href="index.html">Inicio</a>
+                            <a class="nav-link" href="index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="candidatos.html">Candidatos</a>
+                            <a class="nav-link disabled" href="candidatos">Candidatos</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Cuenta
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="user.html">Perfil</a>
-                                <a class="dropdown-item" href="login.html">Cerrar sesión</a>
+                                <a class="dropdown-item" href="user">Perfil</a>
+                                <a class="dropdown-item" href="login">Cerrar sesión</a>
                             </div>
                         </li>
                     </ul>
@@ -40,7 +40,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <h1>Candidatos</h1>
-                    <table class="table table-striped">
+                    <table class="table table-striped" id="tblCandidatos">
                         <thead>
                             <tr>
                                 <th colspan="4">
@@ -55,11 +55,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>{{ $candidato->foto }}</td>
-                                <td>{{ $candidato->nome }}</td>
-                                <td>{{ $candidato->partido }}</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -67,8 +62,46 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+    <script>
+        function mostrarCandidatos(){
+            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+                console.log(resp);
+                $('#tblCandidatos tbody').html('');
+                let tbody = $('#tblCandidatos tbody'),
+                    html = '';
+                if (resp.response.length > 0) {
+                    resp.response.forEach(candidato => {
+                        html += `
+                            <tr>
+                                <td>
+                                    <img src="${candidato.Img_Src}" width="50" height="50"></td> 
+                                </td>
+                                <td>${candidato.Nombre}</td>
+                                <td>${candidato.Nombre_Partido}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = `
+                        <tr>
+                            <td colspan="8">
+                                <div class="alert alert-warning" role="alert">
+                                    No hay candidatos registrados
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    console.log(resp.msg);
+                }
+                tbody.append(html);
+            }, 'json');
+        }
+        $(document).ready(function(){
+            mostrarCandidatos();
+        });
+    </script>
 </body>
 </html>

@@ -32,7 +32,7 @@
                     <a class="nav-link" href="admincandidato">Candidatos <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="adminpartido">Paridos</a>
+                    <a class="nav-link" href="adminpartido">Partidos</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="adminusuario">Usuarios</a>
@@ -42,11 +42,18 @@
     </nav>
     <div class="container">
         <div class="row">
+            <div class="position-fixed zindex-fixed" style="z-index: 20">
+                <div class="col-md-6">
+                    <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-12">
                 <h1>Administrar</h1>
             </div>
         </div>
-
         <div class="row">
             <div class="col-md-12">
                 <div class="card mb-3">
@@ -54,9 +61,9 @@
                         <h5>Agregar candidato</h5>
                     </div>
                 </div>
-                <form action="" method="post" enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4">
+                <form enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4" data-action="insertar" data-id="0">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="nombre">Nombre</label>
                                 <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Carlos José Ortega Martinéz" 
@@ -72,14 +79,14 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="foto">Foto</label>
                                 <input type="file" class="form-control" name="foto" id="foto" placeholder="Foto">
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="email">Email</label>
@@ -92,14 +99,14 @@
                                 <input type="text" name="telefono" id="telefono" class="form-control">
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="fecha_nacimiento">Fecha de nacimiento</label>
                                 <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control">
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <button type="submit" class="btn btn-secondary form-control mt-4">Agregar</button>
@@ -112,13 +119,7 @@
                     </div>
                 </form>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
-                </div>
-            </div>
-        </div>            
+        </div>          
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
@@ -178,24 +179,6 @@
             }, 'json');
         }
 
-        function eliminarCandidato(id){
-            $.post('http://localhost:8000/eliminar_candidato', {id: id}, (resp, status) => {
-                if (resp.response.length > 0) {
-                    $('#mensaje').html('');
-                    $('#mensaje').append('<p>'+resp.msg+'</p>');
-                    $('#mensaje').removeClass('d-none');
-                    $('#mensaje').addClass('d-block');
-                    setTimeout(() => {
-                        $('#mensaje').removeClass('d-block');
-                        $('#mensaje').addClass('d-none');
-                    }, 3000);
-                    mostrarCandidatos();
-                } else {
-                    console.log(resp.msg);
-                }
-            }, 'json');
-        }
-
         function mostrarCandidatos(){
             $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
                 console.log(resp);
@@ -205,7 +188,7 @@
                 if (resp.response.length > 0) {
                     resp.response.forEach(candidato => {
                         html += `
-                            <tr>
+                            <tr onclick='actualizarCandidato(${JSON.stringify(candidato)})'>
                                 <td>${candidato.Id_Candidato}</td>
                                 <td>${candidato.Nombre}</td>
                                 <td>${candidato.Nombre_Partido}</td>
@@ -214,10 +197,7 @@
                                 <td>${candidato.Fecha_Nacimiento}</td>
                                 <td><img src="${candidato.Img_Src}" width="100" height="100"></td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm m-1" onclick="actualizarCandidato(${candidato.Id_Candidato})">
-                                        <i class="fa fa-pencil">Actualizar</i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm m-1" onclick="eliminarCandidato(${candidato.Id_Candidato})">
+                                    <button class="btn btn-danger btn-sm m-1" onclick='eliminarCandidato(${JSON.stringify(candidato)})'>
                                         <i class="fa fa-trash">Eliminar</i>
                                     </button>
                                 </td>
@@ -239,6 +219,47 @@
                 tbody.append(html);
             }, 'json');
         }
+
+        function eliminarCandidato(candidato){
+            if (confirm(`¿Esta seguro de eliminar este candidato: ${candidato.Nombre}?`)) {
+                let data = {
+                    action: 'eliminar',
+                    id: candidato.Id_Candidato
+                };
+                $.post('http://localhost:8000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
+                    console.log(resp);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                        if (resp.response.status == 'ok') {
+                            limpiarcampos();
+                            $("#mensaje")
+                                .removeClass("alert-danger")
+                                .addClass("alert-success");
+                                mostrarCandidatos();
+                        } else {
+                            $("#mensaje")
+                                .removeClass("alert-success")
+                                .addClass("alert-danger");
+                        }
+                        setTimeout(()=>{
+                            $("#mensaje").toggleClass("d-none");
+                        },5000);
+                }, 'json');
+            }
+        }
+
+        function actualizarCandidato(candidato){
+            $("#frmAgregar")
+                .data('action', 'actualizar')
+                .data('id', candidato.Id_Candidato);
+            $("#nombre").val(candidato.Nombre);
+            $("#partido").val(candidato.Id_Partido);
+            $("#email").val(candidato.Correo);
+            $("#telefono").val(candidato.Telefono);
+            $("#fecha_nacimiento").val(candidato.Fecha_Nacimiento);
+            $("#foto").val(candidato.Img_Src);
+            $("#btnAgregar").text('Actualizar');
+        }
+
         $(document).ready(function(){
             mostrarPartidos();
             mostrarCandidatos();
@@ -249,24 +270,30 @@
 
             $('#frmAgregar').submit(e => {
                 e.preventDefault();
-                let name = $('#nombre').val(),
+                let action = $('#frmAgregar').data('action'),
+                    id = $('#frmAgregar').data('id'),
+                    name = $('#nombre').val(),
                     partido = $('#partido').val(),
                     email = $('#email').val(),
                     telefono = $('#telefono').val(),
                     fecha_nacimiento = $('#fecha_nacimiento').val(),
                     foto = $('#foto').val(),
-                    data = {name, partido, email, telefono, fecha_nacimiento, foto};
-
-                $.post('http://localhost:8000/agregar_candidato', JSON.stringify(data), (resp, status) => {
+                    data = {action, id, name, partido, email, telefono, fecha_nacimiento, foto};
+                console.log(fecha_nacimiento);
+                $.post('http://localhost:8000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
                     console.log(resp);
-                    $("#mensaje").toggleClass("d-none").text(resp.response.status);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                     if (resp.response.status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")
                             .addClass("alert-success");
                         mostrarCandidatos();
+                        $("#frmAgregar")
+                            .data('action', 'insertar')
+                            .data('id', 0);
+                        $("#btnAgregar").text('Ingresar');
                     } else {
                         $("#mensaje")
                             .removeClass("alert-success")

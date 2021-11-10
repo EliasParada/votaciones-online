@@ -32,7 +32,7 @@
                     <a class="nav-link" href="admincandidato">Candidatos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="adminpartido">Paridos</a>
+                    <a class="nav-link" href="adminpartido">Partidos</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="adminusuario">Usuarios <span class="sr-only">(current)</span></a>
@@ -41,6 +41,14 @@
         </div>
     </nav>
     <div class="container">
+        <div class="row">
+            <div class="position-fixed zindex-fixed" style="z-index: 20">
+                <div class="col-md-6">
+                    <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <h1>Administrar</h1>
@@ -51,10 +59,10 @@
             <div class="col-md-12">
                 <div class="card mb-3">
                     <div class="card-header" id="desplegar">
-                        <h5>Agregar candidato</h5>
+                        <h5>Agregar usuario</h5>
                     </div>
                 </div>
-                <form action="" method="post" enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4">
+                <form enctype="multipart/form-data"  id="frmAgregar" class="desplegable px-4" data-action="insertar" data-id="0">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
@@ -109,18 +117,12 @@
                         </div>
                     </div>
                 </form>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div>                
+        </div>    
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3>Lista de candidatos</h3>
+                    <h3>Lista de usuarios</h3>
                 </div>
             </div>
         </div>
@@ -165,26 +167,22 @@
 
         function mostrarUsuarios(){
             $.get('http://localhost:8000/mostrar_usuarios', (resp, status) => {
-                console.log(resp);
-                $('#tblCandidato tbody').html('');
+                $('#tblUsuarios tbody').html('');
                 let tbody = $('#tblUsuarios tbody'),
                     html = '';
                 if (resp.response.length > 0) {
                     resp.response.forEach(usuario => {
                         html += `
-                            <tr>
+                            <tr onclick='actualizarUsuario(${JSON.stringify(usuario)})'>
                                 <td>${usuario.Id_Usuario}</td>
                                 <td>${usuario.DUI}</td>
                                 <td>${usuario.Nombre}</td>
                                 <td>${usuario.Telefono}</td>
                                 <td>${usuario.Correo}</td>
                                 <td>${usuario.Contrasegna}</td>
-                                <td><img src="${usuario.Img_Src}" width="100" height="100"></td>
+                                <td><img src="" width="100" height="100"></td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm m-1" onclick="actualizarCandidato(${usuario.Id_Usuario})">
-                                        <i class="fa fa-pencil">Actualizar</i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm m-1" onclick="eliminarCandidato(${usuario.Id_Usuario})">
+                                    <button class="btn btn-danger btn-sm m-1" onclick='eliminarUsuario(${JSON.stringify(usuario)})'>
                                         <i class="fa fa-trash">Eliminar</i>
                                     </button>
                                 </td>
@@ -206,6 +204,46 @@
                 tbody.append(html);
             }, 'json');
         }
+
+        function eliminarUsuario(usuario){
+            if (confirm(`¿Esta seguro de eliminar este usuario: ${usuario.Nombre}?`)) {
+                let data = {
+                    action: 'eliminar',
+                    id: usuario.Id_Usuario
+                };
+                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                        if (resp.response.status == 'ok') {
+                            limpiarcampos();
+                            $("#mensaje")
+                                .removeClass("alert-danger")
+                                .addClass("alert-success");
+                                mostrarUsuarios();
+                        } else {
+                            $("#mensaje")
+                                .removeClass("alert-success")
+                                .addClass("alert-danger");
+                            console.log(resp.msg);
+                        }
+                        setTimeout(()=>{
+                            $("#mensaje").toggleClass("d-none");
+                        },5000);
+                }, 'json');
+            }
+        }
+
+        function actualizarUsuario(usuario){
+            $("#frmAgregar")
+                .data('action', 'actualizar')
+                .data('id', usuario.Id_Usuario);
+            $("#dui").val(usuario.DUI);
+            $("#nombre").val(usuario.Nombre);
+            $("#telefono").val(usuario.Telefono);
+            $("#email").val(usuario.Correo);
+            $("#pass").val(usuario.Contrasegna);
+            $("#foto").val(usuario.Foto);
+        }
+
         $(document).ready(function(){
             mostrarUsuarios();
 
@@ -215,28 +253,33 @@
 
             $('#frmAgregar').submit(e => {
                 e.preventDefault();
-                let dui = $('#dui').val(),
+                let action = $('#frmAgregar').data('action'),
+                    id = $('#frmAgregar').data('id'),
+                    dui = $('#dui').val(),
                     name = $('#nombre').val(),
                     telefono = $('#telefono').val(),
                     correo = $('#email').val(),
                     password = $('#pass').val(),
                     foto = $('#foto').val(),
-                    data = {dui, name, telefono, correo, password, foto};
+                    data = {action, id, dui, name, telefono, correo, password, foto};
 
-                $.post('http://localhost:8000/agregar_usuario', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
-                    console.log(resp);
-                    $("#mensaje").toggleClass("d-none").text(resp.response.status);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                     if (resp.response.status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")
                             .addClass("alert-success");
-                            mostrarUsuarios();
+                        mostrarUsuarios();
+                        $("#frmAgregar")
+                            .data('action', 'insertar')
+                            .data('id', 0);
                     } else {
                         $("#mensaje")
                             .removeClass("alert-success")
                             .addClass("alert-danger");
+                        console.log(resp.msg);
                     }
                     setTimeout(()=>{
                         $("#mensaje").toggleClass("d-none");
