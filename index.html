@@ -30,7 +30,7 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="user">Perfil</a>
-                                <a class="dropdown-item" href="login">Cerrar sesión</a>
+                                <a class="dropdown-item" href="login" id="salir">Cerrar sesión</a>
                             </ul>
                         </li>
                     </ul>
@@ -48,14 +48,10 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <!-- formulario vertical -->
-                        <form action="" method="post">
+                        <form method="post" id="frmVotar" data-action="insertar">
                             <div class="form-group">
                                 <label for="candidato">Candidato</label>
                                 <select class="form-control" id="candidato" name="candidato">
-                                    <option value="1">Candidato 1</option>
-                                    <option value="2">Candidato 2</option>
-                                    <option value="3">Candidato 3</option>
-                                    <option value="4">Candidato 4</option>
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary">Elegir</button>
@@ -79,9 +75,11 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-12" id="grafica">
+                    <div class="col-sm-6" id="grafica">
                         <canvas id="myChart" width="400" height="400"></canvas>
-                        <legend for="myChart"></legend>
+                    </div>
+                    <div class="col-sm-6" id="prediccion">
+                        <canvas id="myPredict" width="400" height="400"></canvas>
                     </div>
                 </div>
             </div>
@@ -93,7 +91,8 @@
     <!-- Always remember to call the above files first before calling the bootstrap.min.js file -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <script>
-        
+        let votos = {};
+        let colors = [];
         function randomColor() {
             var letters = '0123456789ABCDEF';
             var color = '#';
@@ -102,36 +101,21 @@
             }
             return color;
         }
-        $(document).ready(function(){
-            let myCanvas = document.getElementById("myChart");
-            myCanvas.width = 600;
-            myCanvas.height = 400;
-            let ctx = myCanvas.getContext("2d");
-
-            function drawLine(ctx, startX, startY, endX, endY, color) {
-                ctx.save();
-                ctx.strokeColor = color;
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(endX, endY);
-                ctx.stroke();
-                ctx.restore();
-            }
-            function drawBar(ctx, x, y, width, height, color) {
-                ctx.save();
-                ctx.fillStyle = color;
-                ctx.fillRect(x, y, width, height);
-                ctx.restore();
-            }
-
-            let elections = {'candidato1':10, 'candidato2':20, 'candidato3':30, 'candidato4':40, 'candidato5':50};
-
-            let barChar = function(data) {
-                this.options = data;
-                this.canvas = data.canvas;
-                this.ctx = data.canvas.getContext("2d");
-                this.colors = data.colors;
-
+        let barChar = function(data) {
+            this.options = data;
+            this.canvas = data.canvas;
+            this.ctx = data.canvas.getContext("2d");
+            this.colors = data.colors;
+            this.keys = Object.keys(data.data);
+            if (this.keys.length < 1) {
+                this.ctx.font = "30px Arial";
+                this.ctx.textAlign = "center";
+                this.ctx.fillStyle = "#fff3cd";
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = "#664d03";
+                this.ctx.fillText("No hay datos", this.canvas.width / 2, this.canvas.height / 2);
+                this.canvas.borderRadius = "10px";
+            } else {
                 this.draw = function() {
                     let maxVotes = 0;
                     for (let key in this.options.data) {
@@ -140,7 +124,6 @@
                     let canvasActualHeight = this.canvas.height - this.options.padding * 2;
                     let canvasActualWidth = this.canvas.width - this.options.padding * 2;
                     
-                    // drawing the grid lines
                     let gridValue = 0;
                     while (gridValue <= maxVotes) {
                         let gridY = canvasActualHeight * (1 - gridValue / maxVotes) + this.options.padding;
@@ -153,7 +136,6 @@
                             this.options.gridColor
                         );
 
-                        //writing grid markers
                         this.ctx.save();
                         this.ctx.fillStyle = this.options.gridColor;
                         this.ctx.font = "bold 10px Arial";
@@ -171,8 +153,6 @@
                     for (let key in this.options.data) {
                         let val = this.options.data[key];
                         let barHeight = Math.round(canvasActualHeight * val/ maxVotes);
-                        // let barX = this.options.padding + barIndex * barSize;
-
                         drawBar(
                             this.ctx,
                             this.options.padding + barIndex * barSize,
@@ -188,6 +168,10 @@
                     this.ctx.textAlign = "center";
                     this.ctx.textBaseline = "bottom";
                     this.ctx.fillStyle = "white";
+                    this.ctx.shadowColor = "black";
+                    this.ctx.shadowOffsetX = 2;
+                    this.ctx.shadowOffsetY = 2;
+                    this.ctx.shadowBlur = 1;
                     this.ctx.font = "bold 14px Arial";
                     let candidatos = Object.keys(this.options.data);
                     for (let i = 0; i < candidatos.length; i++) {
@@ -198,45 +182,108 @@
                         this.ctx.fillText(candidato, barX + barWidth / 2, this.canvas.height - this.options.padding);
                     }
                     this.ctx.restore();
-                    
-                    //drwaing the legend
-                    // let legend = document.querySelector("legend[for='myChart']");
-                    // let ul = document.createElement("ul");
-                    // legend.append(ul);
-                    // let width = canvasActualWidth / numberOfBars;
-                    // console.log(width);
-                    // for (let key in this.options.data) {
-                    //     let li = document.createElement("li");
-                    //     li.style.listStyle = "none";
-                    //     li.style.padding = "5px";
-                    //     li.style.fontSize = width + "%";
-                    //     li.style.float = "left";
-                    //     li.style.color = this.colors[barIndex%this.colors.length];
-                    //     li.style.borderLeft = "10px solid " + this.colors[barIndex%this.colors.length];
-                    //     li.style.borderRight = "10px solid " + this.colors[barIndex%this.colors.length];
-                    //     li.textContent = key;
-                    //     ul.append(li);
-                    //     barIndex++;
-                    // }
-                    
                 }
             }
+        }
+        function drawLine(ctx, startX, startY, endX, endY, color) {
+            ctx.save();
+            ctx.strokeColor = color;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            ctx.restore();
+        }
+        function drawBar(ctx, x, y, width, height, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+            ctx.restore();
+        }
+        function getVotos(){
+            $.get("http://localhost:8000/mostrar_votos", (data)=>{
+                console.log(data);
+                data.response.forEach(voto => {
+                    Nombre = voto.Nombre.split(" ")[0];
+                    Nombre.toString();
+                    votos[Nombre] = voto.Votos;
+                    console.log(votos);
+                });
+                for (let i = 0; i < Object.keys(votos).length; i++) {
+                    colors.push(randomColor());
+                }
+                let myChart = new barChar({
+                    canvas: $("#myChart")[0],
+                    data: votos,
+                    padding: 25,
+                    gridScale: 20,
+                    gridColor: "#B9B6B6",
+                    colors: colors
+                });
+                myChart.draw()
+            }, 'json');
+            console.log(Object.keys(votos))
+        }
+        function mostrarCandidatos(){
+            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+                console.log(resp);
+                if (resp.response.length > 0) {
+                    $('#candidato').html('');
+                    $('#candidato').append('<option value="">Seleccione un candidato</option>');
+                    resp.response.forEach(candidato => {
+                        $('#candidato').append('<option value="'+candidato.Id_Candidato+'">'+candidato.Nombre+'</option>');
+                    });
+                } else {
+                    console.log(resp.msg);
+                }
+            }, 'json');
+        }
 
-            // Hacer un array de colores segun el numero de candidatos
-            let colors = [];
-            for (let i = 0; i < Object.keys(elections).length; i++) {
-                colors.push(randomColor());
-            }
-            let myChart = new barChar({
-                canvas: myCanvas,
-                data: elections,
-                padding: 10,
-                gridScale: 5,
-                gridColor: "#eee",
-                colors: colors
-            });
-            myChart.draw();
+        function access() {
+            $.get('http://localhost:8000/access', (data)=>{
+                console.log(data);
+                if (data.response.access == true) {
+                    console.log("Acceso");
+                } else {
+                    window.location.href = 'http://localhost:8000/login';
+                }
+            }, 'json');
+        }
+        function salir() {
             
+        }
+        $(document).ready(function(){
+            mostrarCandidatos();
+            getVotos();
+            access();
+            // let elections = {'Carlos':100, 'Elía':45, 'candidato3':300, 'candidato4':30, 'candidato5':500};
+            console.log(votos);
+            let myCanvas = document.getElementById("myChart");
+            myCanvas.width = 250;
+            myCanvas.height = 250;
+            let ctx = myCanvas.getContext("2d");
+
+            $('#salir').click(e => {
+                $.post('http://localhost:8000/salir', (data)=>{
+                    console.log(data);
+                    if (data.response.salir == true) {
+                        window.location.href = 'http://localhost:8000/login';
+                    } else {
+                        console.log("Error al salir");
+                    }
+                }, 'json');
+            });
+
+            $('#frmVotar').submit(e => {
+                e.preventDefault();
+                let action = $('#frmVotar').data('action'),
+                    candidato = $('#candidato').val(),
+                    data = {action, candidato};
+                    console.log(candidato);
+                    $.post('http://localhost:8000/administrar_votos', JSON.stringify(data), (resp, status) => {
+                        console.log(resp);
+                    });
+            });
         });
     </script>
 </body>
