@@ -5,12 +5,46 @@ import datetime
 
 from urllib import parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-import tensorflow as tf
-import numpy as np
+# import tensorflow as tf
+# import pandas as pd
+# import numpy as np
 
-#Crear una ai con tensorflow
-model = tf.keras.models.load_model('model.h5')
-
+# #Crear un dataset de entrenamiento
+# dataset = pd.read_csv('predict.csv', sep=';')
+# dea = dataset[['de', 'a']]
+# prediccion_entrenamiento = dataset[['predict']]
+# #Crear un dataset de prueba
+# test_dataset = pd.read_csv('test.csv', sep=';')
+# dea_entrenamiento = test_dataset[['de', 'a']]
+# label_entrenamiento = test_dataset[['lable']]
+# #Combertir los datos a numpy
+# dea_entrenamiento = dea_entrenamiento.values
+# label_entrenamiento = label_entrenamiento.values
+# dea = dea.values
+# prediccion_entrenamiento = prediccion_entrenamiento.values
+# print(dea.shape)
+# #Crear el modelo
+# model = tf.keras.models.Sequential()
+# #Agregar capas
+# model.add(tf.keras.layers.Dense(64, activation='relu'))
+# model.add(tf.keras.layers.Dense(64, activation='relu'))
+# model.add(tf.keras.layers.Dense(1))
+# #Compilar el modelo
+# model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+# #Entrenar el modelo
+# model.fit(dea, prediccion_entrenamiento, epochs=100, batch_size=32)
+# #Evaluar
+# model.evaluate(dea, prediccion_entrenamiento)
+# #Predecir
+# prediccion = model.predict(dea_entrenamiento)
+# #Convertir a json
+# prediccion = prediccion.tolist()
+# prediccion = json.dumps(prediccion)
+# #Convertir a json
+# label_entrenamiento = label_entrenamiento.tolist()
+# label_entrenamiento = json.dumps(label_entrenamiento)
+# print(prediccion)
+# print(label_entrenamiento)
 
 class crud():
     def __init__(self):
@@ -106,11 +140,11 @@ class crud():
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
 
-    def mostrar_perfil(self, dui):
+    def mostrar_perfil(self, data):
         try:
-            sql = "SELECT (Nombre, Telefono, Correo, Img_Src) FROM usuarios WHERE DUI = %s"
-            val = (dui,)
-            cursor = self.conn.cursor()
+            sql = "SELECT Nombre, Correo, Telefono, Img_Src FROM usuarios WHERE Id_Usuario = %s"
+            val = (data['id'],)
+            cursor = self.conn.cursor(dictionary=True)
             cursor.execute(sql, val)
             result = cursor.fetchall()
             return result
@@ -168,6 +202,17 @@ class crud():
             cursor = self.conn.cursor(dictionary=True)
             sql = "SELECT candidatos.Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM candidatos, votaciones WHERE candidatos.Id_Candidato = votaciones.Id_Candidato GROUP BY candidatos.Id_Candidato"
             cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err), 'votos':{}}
+
+    def votos_intervalo(self, fecha_inicio, fecha_fin):
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            sql = "SELECT Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM votaciones WHERE votaciones.Fecha BETWEEN %s AND %s"
+            val = (fecha_inicio, fecha_fin)
+            cursor.execute(sql, val)
             result = cursor.fetchall()
             return result
         except mysql.connector.Error as err:
@@ -285,7 +330,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
         
         elif self.path == '/perfil':
-            response = curd.mostrar_perfil(self.user)
+            response = curd.mostrar_perfil(datos)
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))

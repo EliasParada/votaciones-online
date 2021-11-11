@@ -49,18 +49,38 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="col-md-3">
-                                        <img src="https://static.thenounproject.com/png/4291178-200.png" class="img-responsive img-circle" alt="">
+                                        <img id="foto_perfil" src="https://static.thenounproject.com/png/4291178-200.png" class="img-responsive img-circle" alt="Algo salio mal">
                                     </div>
                                     <!-- Cerrar sesión -->
                                     <div class="col-md-9">
-                                        <h2>Nombre</h2>
-                                        <p>
-                                            <strong>Telefono:</strong>
-                                            <p id="telefono"></p>
-                                            <strong>Correo:</strong>
-                                            <p id="correo"></p>
-                                        </p>
-                                        <a href="" class="btn btn-primary">Cerrar sesión</a>
+                                        <h2 id="nombre">Nombre</h2>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p>
+                                                    <strong >Telefono:</strong>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p>
+                                                    <strong id="telefono"></strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p>
+                                                    <strong >Correo:</strong>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p>
+                                                    <strong id="correo"></strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <a href="login" class="btn btn-danger">Cerrar sesión</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -79,8 +99,11 @@
     <script>
         function mostrarCandidatos(){
             $.get('http://localhost:8000/perfil', (resp, status) => {
-                console.log(resp);
-                // $('#telefono').text(resp.telefono);
+                console.log(resp.response[0]);
+                // $('#foto_perfil').attr('src', resp.response[0].Img_Src);
+                $('#nombre').text(resp.response[0].Nombre);
+                $('#telefono').text(resp.response[0].Telefono);
+                $('#correo').text(resp.response[0].Correo);
             }, 'json');
         }
 
