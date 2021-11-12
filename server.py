@@ -271,13 +271,6 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
-        
-        # if datos['login'] == True:
-        #     if self.path == '/index' or self.path == '/favicon' or self.path == '/mostrar_votos' or self.path == '/mostrar_candidatos' or self.path == '/mostrar_usuarios' or self.path == '/mostrar_partidos' or self.path == '/mostrar_candidatos':
-        #         self.path = '/index.html'
-        #         return SimpleHTTPRequestHandler.do_GET(self)
-        # #Si no esta logueado
-        # else:
 
         if self.path == '/':
             self.path = '/login.html'
@@ -350,6 +343,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
     def do_POST(self):
+        #INGRESAR
         if self.path == '/ingresar':
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
@@ -372,6 +366,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(dict(response=result[0])).encode('utf-8'))
             
+        #GUARDAR FOTO (AUN NO FUNIONA)
         elif self.path == '/guardarFoto':
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
@@ -439,6 +434,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
+        #SALIR
         elif self.path == '/salir':
                 print('Cerrando sesion')
                 datos['login'] = False
