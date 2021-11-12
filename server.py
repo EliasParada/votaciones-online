@@ -448,5 +448,5 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
 print('Servidor iniciado')
-httpd = HTTPServer(('localhost', 8000), Handler)
+httpd = HTTPServer(('localhost', 3000), Handler)
 httpd.serve_forever()
