@@ -166,7 +166,7 @@
         }
 
         function mostrarUsuarios(){
-            $.get('http://localhost:8000/mostrar_usuarios', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_usuarios', (resp, status) => {
                 $('#tblUsuarios tbody').html('');
                 let tbody = $('#tblUsuarios tbody'),
                     html = '';
@@ -211,7 +211,7 @@
                     action: 'eliminar',
                     id: usuario.Id_Usuario
                 };
-                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                         if (resp.response.status == 'ok') {
                             limpiarcampos();
@@ -263,7 +263,7 @@
                     foto = $('#foto').val(),
                     data = {action, id, dui, name, telefono, correo, password, foto};
 
-                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                     if (resp.response.status == 'ok') {

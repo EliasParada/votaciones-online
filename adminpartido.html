@@ -136,7 +136,7 @@
         }
 
         function mostrarPartidos(){
-            $.get('http://localhost:8000/mostrar_partidos', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
                 $('#tblCandidato tbody').html('');
                 let tbody = $('#tblCandidato tbody'),
                     html = '';
@@ -177,7 +177,7 @@
                     action: 'eliminar',
                     id: partido.Id_Partido
                 };
-                $.post('http://localhost:8000/administrar_partidos', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                         if (resp.response.status == 'ok') {
                             limpiarcampos();
@@ -220,7 +220,7 @@
                     siglas = $('#siglas').val(),
                     data = {action, id, name, siglas};
 
-                $.post('http://localhost:8000/administrar_partidos', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                     if (resp.response.status == 'ok') {

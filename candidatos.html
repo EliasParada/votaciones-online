@@ -67,7 +67,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <script>
         function mostrarCandidatos(){
-            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_candidatos', (resp, status) => {
                 console.log(resp);
                 $('#tblCandidatos tbody').html('');
                 let tbody = $('#tblCandidatos tbody'),

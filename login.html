@@ -34,7 +34,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="password">Password</label>
-                                    <input type="password" name="passwordIngresar" id="passwordIngresar" class="form-control" placeholder="Password">
+                                    <input type="password" name="passwordIngresar" id="passwordIngresar" class="form-control" placeholder="Password"
+                                    pattern=".{6,16}">
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">Login</button>
@@ -82,7 +83,7 @@
                                 <div class="form-group">
                                     <label for="password">Password</label>
                                     <input type="password" name="password" id="password" class="form-control" placeholder="Jk%45@1#Abc"
-                                    pattern="[A-Za-z0-9ÁÉÍÓÚÑáéíóúñ._%+-]{6,16}" required title="Ingresé como minimo 6 caracteres y como mázimo 16">
+                                    pattern=".{6,16}" required title="Ingresé como minimo 6 caracteres y como mázimo 16">
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">Registrar</button>
@@ -98,15 +99,14 @@
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <script>
         function access() {
-            $.get('http://localhost:8000/access', (data)=>{
-                resp = JSON.parse(data);
-                console.log(resp);
-                if (resp.response.access == true) {
-                    window.location.href = 'http://localhost:8000/index';
+            $.get('http://localhost:3000/access', (data)=>{
+                console.log(data);
+                if (data.response.access == true) {
+                    window.location.href = 'http://localhost:3000/index';
                 } else {
                     console.log("Inicia sesión");
                 }
-            })
+            }, 'json')
         }
         $(document).ready(function(){
             access();
@@ -128,11 +128,11 @@
                     password = $('#passwordIngresar').val(),
                     data = {name, dui, password};
 
-                $.post('http://localhost:8000/ingresar', JSON.stringify(data), (resp) => {
+                $.post('http://localhost:3000/ingresar', JSON.stringify(data), (resp) => {
                     resp = JSON.parse(resp);
                     console.log(resp);
                     if (resp.response.status == 'ok') {
-                        window.location.href = 'http://localhost:8000/index';
+                        window.location.href = 'http://localhost:3000/index';
                     } else {
                         console.log(resp.response.code);
                     }
@@ -150,11 +150,11 @@
                     foto = $('#frmRegistro #foto')[0].files[0].name,
                     data = {action, name, dui, tel, email, password, foto};
 
-                $.post('http://localhost:8000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {
+                $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {
                     res = JSON.parse(res);
                     console.log(res);
                     if (res.status == 'ok') {
-                        window.location.href = 'http://localhost:8000/index';
+                        window.location.href = 'http://localhost:3000/index';
                     } else {
                         console.log(res.code);
                     }

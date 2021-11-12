@@ -114,7 +114,6 @@
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.fillStyle = "#664d03";
                 this.ctx.fillText("No hay datos", this.canvas.width / 2, this.canvas.height / 2);
-                this.canvas.borderRadius = "10px";
             } else {
                 this.draw = function() {
                     let maxVotes = 0;
@@ -201,7 +200,7 @@
             ctx.restore();
         }
         function getVotos(){
-            $.get("http://localhost:8000/mostrar_votos", (data)=>{
+            $.get("http://localhost:3000/mostrar_votos", (data)=>{
                 console.log(data);
                 data.response.forEach(voto => {
                     Nombre = voto.Nombre.split(" ")[0];
@@ -216,7 +215,7 @@
                     canvas: $("#myChart")[0],
                     data: votos,
                     padding: 25,
-                    gridScale: 20,
+                    gridScale: 5,
                     gridColor: "#B9B6B6",
                     colors: colors
                 });
@@ -225,7 +224,7 @@
             console.log(Object.keys(votos))
         }
         function mostrarCandidatos(){
-            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_candidatos', (resp, status) => {
                 console.log(resp);
                 if (resp.response.length > 0) {
                     $('#candidato').html('');
@@ -240,12 +239,12 @@
         }
 
         function access() {
-            $.get('http://localhost:8000/access', (data)=>{
+            $.get('http://localhost:3000/access', (data)=>{
                 console.log(data);
                 if (data.response.access == true) {
                     console.log("Acceso");
                 } else {
-                    window.location.href = 'http://localhost:8000/login';
+                    window.location.href = 'http://localhost:3000/login';
                 }
             }, 'json');
         }
@@ -264,10 +263,10 @@
             let ctx = myCanvas.getContext("2d");
 
             $('#salir').click(e => {
-                $.post('http://localhost:8000/salir', (data)=>{
+                $.post('http://localhost:3000/salir', (data)=>{
                     console.log(data);
                     if (data.response.salir == true) {
-                        window.location.href = 'http://localhost:8000/login';
+                        window.location.href = 'http://localhost:3000/login';
                     } else {
                         console.log("Error al salir");
                     }
@@ -280,7 +279,7 @@
                     candidato = $('#candidato').val(),
                     data = {action, candidato};
                     console.log(candidato);
-                    $.post('http://localhost:8000/administrar_votos', JSON.stringify(data), (resp, status) => {
+                    $.post('http://localhost:3000/administrar_votos', JSON.stringify(data), (resp, status) => {
                         console.log(resp);
                     });
             });

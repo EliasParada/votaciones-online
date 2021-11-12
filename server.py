@@ -5,46 +5,46 @@ import datetime
 
 from urllib import parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-# import tensorflow as tf
-# import pandas as pd
-# import numpy as np
+import tensorflow as tf
+import pandas as pd
+import numpy as np
 
-# #Crear un dataset de entrenamiento
-# dataset = pd.read_csv('predict.csv', sep=';')
-# dea = dataset[['de', 'a']]
-# prediccion_entrenamiento = dataset[['predict']]
-# #Crear un dataset de prueba
-# test_dataset = pd.read_csv('test.csv', sep=';')
-# dea_entrenamiento = test_dataset[['de', 'a']]
-# label_entrenamiento = test_dataset[['lable']]
-# #Combertir los datos a numpy
-# dea_entrenamiento = dea_entrenamiento.values
-# label_entrenamiento = label_entrenamiento.values
-# dea = dea.values
-# prediccion_entrenamiento = prediccion_entrenamiento.values
-# print(dea.shape)
-# #Crear el modelo
-# model = tf.keras.models.Sequential()
-# #Agregar capas
-# model.add(tf.keras.layers.Dense(64, activation='relu'))
-# model.add(tf.keras.layers.Dense(64, activation='relu'))
-# model.add(tf.keras.layers.Dense(1))
-# #Compilar el modelo
-# model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-# #Entrenar el modelo
-# model.fit(dea, prediccion_entrenamiento, epochs=100, batch_size=32)
-# #Evaluar
-# model.evaluate(dea, prediccion_entrenamiento)
-# #Predecir
-# prediccion = model.predict(dea_entrenamiento)
-# #Convertir a json
-# prediccion = prediccion.tolist()
-# prediccion = json.dumps(prediccion)
-# #Convertir a json
-# label_entrenamiento = label_entrenamiento.tolist()
-# label_entrenamiento = json.dumps(label_entrenamiento)
-# print(prediccion)
-# print(label_entrenamiento)
+#Crear un dataset de entrenamiento
+dataset = pd.read_csv('predict.csv', sep=';')
+dea = dataset[['de', 'a']]
+prediccion_entrenamiento = dataset[['predict']]
+#Crear un dataset de prueba
+test_dataset = pd.read_csv('test.csv', sep=';')
+dea_entrenamiento = test_dataset[['de', 'a']]
+label_entrenamiento = test_dataset[['lable']]
+#Combertir los datos a numpy
+dea_entrenamiento = dea_entrenamiento.values
+label_entrenamiento = label_entrenamiento.values
+dea = dea.values
+prediccion_entrenamiento = prediccion_entrenamiento.values
+print(dea.shape)
+#Crear el modelo
+model = tf.keras.models.Sequential()
+#Agregar capas
+model.add(tf.keras.layers.Dense(64, activation='relu'))
+model.add(tf.keras.layers.Dense(64, activation='relu'))
+model.add(tf.keras.layers.Dense(1))
+#Compilar el modelo
+model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+#Entrenar el modelo
+model.fit(dea, prediccion_entrenamiento, epochs=100, batch_size=32)
+#Evaluar
+model.evaluate(dea, prediccion_entrenamiento)
+#Predecir
+prediccion = model.predict(dea_entrenamiento)
+#Convertir a json
+prediccion = prediccion.tolist()
+prediccion = json.dumps(prediccion)
+#Convertir a json
+label_entrenamiento = label_entrenamiento.tolist()
+label_entrenamiento = json.dumps(label_entrenamiento)
+print(prediccion)
+print(label_entrenamiento)
 
 class crud():
     def __init__(self):
@@ -140,6 +140,7 @@ class crud():
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
 
+    #MOSTRA PERFIL
     def mostrar_perfil(self, data):
         try:
             sql = "SELECT Nombre, Correo, Telefono, Img_Src FROM usuarios WHERE Id_Usuario = %s"
@@ -151,6 +152,7 @@ class crud():
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la consulta', 'code': str(e)}
 
+    #MOSTRAR PARTIDOS
     def mostrar_partidos(self):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -161,6 +163,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los partidos', 'code': str(err)}
 
+    #MOSTRAR CANDIDATOS
     def mostrar_candidatos(self):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -173,6 +176,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar candidatos', 'code': str(err)}
 
+    #MOSTRAR USUARIOS
     def mostrar_usuarios(self):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -183,6 +187,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los usuarios', 'code': str(err)}
 
+    #MOSTRAR INGRESAR
     def ingresar(self, dui, nombre, contra):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -197,6 +202,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se ha podido iniciar sesión', 'code': str(err)}
         
+    #MOSTRAR VOTOS
     def mostrar_votos(self):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -207,6 +213,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err), 'votos':{}}
 
+    #MOSTRAR VOTOS POR HORAS
     def votos_intervalo(self, fecha_inicio, fecha_fin):
         try:
             cursor = self.conn.cursor(dictionary=True)
@@ -218,6 +225,7 @@ class crud():
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err), 'votos':{}}
 
+    #CREAR ID
     def crear_id(self, table):
         try:
             print('ID para la tabla', table)
@@ -373,14 +381,6 @@ class Handler(SimpleHTTPRequestHandler):
             with open('profile/' + data['name'], 'wb') as f:
                 f.write(data['foto'].encode('utf-8'))
             response = {'status': 'ok', 'msg': 'Foto guardada'}
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
-
-        elif self.path == '/logout':
-            self.user = None
-            response = {'status': 'ok', 'msg': 'Sesión cerrada'}
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()

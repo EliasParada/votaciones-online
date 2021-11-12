@@ -166,7 +166,7 @@
             $("#frmAgregar")[0].reset();
         }
         function mostrarPartidos(){
-            $.get('http://localhost:8000/mostrar_partidos', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
                 if (resp.response.length > 0) {
                     $('#partido').html('');
                     $('#partido').append('<option value="">Seleccione un partido</option>');
@@ -180,7 +180,7 @@
         }
 
         function mostrarCandidatos(){
-            $.get('http://localhost:8000/mostrar_candidatos', (resp, status) => {
+            $.get('http://localhost:3000/mostrar_candidatos', (resp, status) => {
                 console.log(resp);
                 $('#tblCandidato tbody').html('');
                 let tbody = $('#tblCandidato tbody'),
@@ -226,7 +226,7 @@
                     action: 'eliminar',
                     id: candidato.Id_Candidato
                 };
-                $.post('http://localhost:8000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
                     console.log(resp);
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                         if (resp.response.status == 'ok') {
@@ -280,7 +280,7 @@
                     foto = $('#foto').val(),
                     data = {action, id, name, partido, email, telefono, fecha_nacimiento, foto};
                 console.log(fecha_nacimiento);
-                $.post('http://localhost:8000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
+                $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
                     resp = JSON.parse(resp);
                     console.log(resp);
                     $("#mensaje").toggleClass("d-none").text(resp.response.msg);
