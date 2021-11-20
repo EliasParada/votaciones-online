@@ -1,0 +1,104 @@
+<div class="card overflow-scroll" id="cardBuscarUsuario">
+    <div class="card-header">
+        <h3>Lista de usuarios</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarUsuario" aria-label="Close"></button>
+    </div>
+    <div class="col-md-12 card-body">
+        <table class="table table-striped" id="tblUsuarios">
+            <thead>
+                <tr>
+                    <th colspan="8">
+                        <input class="form-control" placeholder="Buscar candidato" type="text" 
+                            name="txtBuscar" id="txtBuscar">
+                    </th>
+                </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>DUI</th>
+                    <th>Nombre</th>
+                    <th>Telefono</th>
+                    <th>Email</th>
+                    <th>Contraseña</th>
+                    <th>Foto</th>
+                    <th>Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function mostrarUsuarios(){
+        $.get('http://localhost:3000/mostrar_usuarios', (resp, status) => {
+            $('#tblUsuarios tbody').html('');
+            let tbody = $('#tblUsuarios tbody'),
+                html = '';
+            if (resp.response.length > 0) {
+                resp.response.forEach(usuario => {
+                    html += `
+                        <tr onclick='actualizarUsuario(${JSON.stringify(usuario)})'>
+                            <td>${usuario.Id_Usuario}</td>
+                            <td>${usuario.DUI}</td>
+                            <td>${usuario.Nombre}</td>
+                            <td>${usuario.Telefono}</td>
+                            <td>${usuario.Correo}</td>
+                            <td>${usuario.Contrasegna}</td>
+                            <td><img src="" width="100" height="100"></td>
+                            <td>
+                                <button class="btn btn-danger btn-sm m-1" onclick='eliminarUsuario(${JSON.stringify(usuario)})'>
+                                    <i class="fa fa-trash">Eliminar</i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="alert alert-warning" role="alert">
+                                No hay usuarios registrados
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                console.log(resp.msg);
+            }
+            tbody.append(html);
+        }, 'json');
+    }
+
+    function eliminarUsuario(usuario){
+        if (confirm(`¿Esta seguro de eliminar este usuario: ${usuario.Nombre}?`)) {
+            let data = {
+                action: 'eliminar',
+                id: usuario.Id_Usuario
+            };
+            $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                    if (resp.response.status == 'ok') {
+                        limpiarcampos();
+                        $("#mensaje")
+                            .removeClass("alert-danger")
+                            .addClass("alert-success");
+                            mostrarUsuarios();
+                    } else {
+                        $("#mensaje")
+                            .removeClass("alert-success")
+                            .addClass("alert-danger");
+                        console.log(resp.msg);
+                    }
+                    setTimeout(()=>{
+                        $("#mensaje").toggleClass("d-none");
+                    },5000);
+            }, 'json');
+        }
+    }
+    
+    $(document).ready(function(){
+        mostrarUsuarios();
+    });
+</script>

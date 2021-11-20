@@ -1,0 +1,111 @@
+<div class="card overflow-scroll" id="cardBuscarCandidato">
+    <div class="card-header col-md-12">
+        <h3>Lista de candidatos</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarCandidato" aria-label="Close"></button>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped" id="tblCandidato">
+            <thead>
+                <tr>
+                    <th colspan="8">
+                        <input class="form-control" placeholder="Buscar candidato" type="text" 
+                            name="txtBuscar" id="txtBuscar">
+                    </th>
+                </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Partido</th>
+                    <th>Email</th>
+                    <th>Telefono</th>
+                    <th>Fecha de nacimiento</th>
+                    <th>Foto</th>
+                    <th>Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function mostrarCandidatos(){
+        $.get('http://localhost:3000/mostrar_candidatos', (resp, status) => {
+            console.log(resp);
+            $('#tblCandidato tbody').html('');
+            let tbody = $('#tblCandidato tbody'),
+                html = '';
+            if (resp.response.length > 0) {
+                resp.response.forEach(candidato => {
+                    html += `
+                        <tr onclick='actualizarCandidato(${JSON.stringify(candidato)})'>
+                            <td>${candidato.Id_Candidato}</td>
+                            <td>${candidato.Nombre}</td>
+                            <td>${candidato.Nombre_Partido}</td>
+                            <td>${candidato.Correo}</td>
+                            <td>${candidato.Telefono}</td>
+                            <td>${candidato.Fecha_Nacimiento}</td>
+                            <td><img src="${candidato.Img_Src}" width="100" height="100"></td>
+                            <td>
+                                <button class="btn btn-danger btn-sm m-1" onclick='eliminarCandidato(${JSON.stringify(candidato)})'>
+                                    <i class="fa fa-trash">Eliminar</i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="alert alert-warning" role="alert">
+                                No hay candidatos registrados
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                console.log(resp.msg);
+            }
+            tbody.append(html);
+        }, 'json');
+    }
+
+    function eliminarCandidato(candidato){
+        if (confirm(`¿Esta seguro de eliminar este candidato: ${candidato.Nombre}?`)) {
+            let data = {
+                action: 'eliminar',
+                id: candidato.Id_Candidato
+            };
+            $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
+                console.log(resp);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                    if (resp.response.status == 'ok') {
+                        limpiarcampos();
+                        $("#mensaje")
+                            .removeClass("alert-danger")
+                            .addClass("alert-success");
+                            mostrarCandidatos();
+                    } else {
+                        $("#mensaje")
+                            .removeClass("alert-success")
+                            .addClass("alert-danger");
+                    }
+                    setTimeout(()=>{
+                        $("#mensaje").toggleClass("d-none");
+                    },5000);
+            }, 'json');
+        }
+    }
+    $(document).ready(function(){
+        mostrarCandidatos();
+
+        $("#txtBuscar").on("keyup", function(){
+            var value = $(this).val().toLowerCase();
+            $("#tblCandidato tr").filter(function(){
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>

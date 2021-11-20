@@ -1,0 +1,95 @@
+<div class="card overflow-scroll" id="cardBuscarPartido">
+    <div class="card-header">
+        <h3>Lista de partidos</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarPartido" aria-label="Close"></button>
+    </div>
+    <div class="col-md-12">
+        <table class="table table-striped" id="tblCandidato">
+            <thead>
+                <tr>
+                    <th colspan="3">
+                        <input class="form-control" placeholder="Buscar candidato" type="text" 
+                            name="txtBuscar" id="txtBuscar">
+                    </th>
+                </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Siglas</th>
+                    <th>Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function mostrarPartidos(){
+            $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
+                $('#tblCandidato tbody').html('');
+                let tbody = $('#tblCandidato tbody'),
+                    html = '';
+                if (resp.response.length > 0) {
+                    resp.response.forEach(partido => {
+                        html += `
+                            <tr onclick='actualizarPartido(${JSON.stringify(partido)})'>
+                                <td>${partido.Id_Partido}</td>
+                                <td>${partido.Nombre}</td>
+                                <td>${partido.Siglas}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm m-1" onclick='eliminarPartido(${JSON.stringify(partido)})'>
+                                        <i class="fa fa-trash">Eliminar</i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    html = `
+                        <tr>
+                            <td colspan="8">
+                                <div class="alert alert-warning" role="alert">
+                                    No hay partidos registrados
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    console.log(resp.msg);
+                }
+                tbody.append(html);
+            }, 'json');
+        }
+
+        function eliminarPartido(partido){
+            if (confirm(`¿Esta seguro de eliminar este partido: ${partido.Nombre}?`)) {
+                let data = {
+                    action: 'eliminar',
+                    id: partido.Id_Partido
+                };
+                $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                        if (resp.response.status == 'ok') {
+                            limpiarcampos();
+                            $("#mensaje")
+                                .removeClass("alert-danger")
+                                .addClass("alert-success");
+                                mostrarCandidatos();
+                        } else {
+                            $("#mensaje")
+                                .removeClass("alert-success")
+                                .addClass("alert-danger");
+                            console.log(resp.msg);
+                        }
+                        setTimeout(()=>{
+                            $("#mensaje").toggleClass("d-none");
+                        },5000);
+                }, 'json');
+            }
+        }
+        $(document).ready(function(){
+            mostrarPartidos();
+        });
+</script>

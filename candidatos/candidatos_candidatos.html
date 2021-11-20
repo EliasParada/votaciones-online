@@ -1,0 +1,149 @@
+<div class="card mb-3" id="cardCandidato">
+    <div class="card-header">
+        <h5>Agregar candidato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardCandidato" aria-label="Close"></button>
+    </div>
+
+    <form enctype="multipart/form-data"  id="frmAgregar" class="card-body" data-action="insertar" data-id="0">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Carlos José Ortega Martinéz" 
+                    pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="partido">Partido</label>
+                    <select name="partido" id="partido" class="form-control">
+                        <option value="">Seleccione un partido</option>
+                            
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="foto">Foto</label>
+                    <input type="file" class="form-control" name="foto" id="foto" placeholder="Foto">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" name="telefono" id="telefono" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-secondary form-control mt-4">Agregar</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button type="reset" class="btn btn-warning form-control mt-4">Reset</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button type="button" class="btn btn-success form-control mt-4" id="btnBuscarCandidato">Buscar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function limpiarcampos(){
+        $("#frmAgregar")[0].reset();
+    }
+    function mostrarPartidos(){
+        $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
+            if (resp.response.length > 0) {
+                $('#partido').html('');
+                $('#partido').append('<option value="">Seleccione un partido</option>');
+                resp.response.forEach(partido => {
+                    $('#partido').append('<option value="'+partido.Id_Partido+'">'+partido.Nombre+'</option>');
+                });
+            } else {
+                console.log(resp.msg);
+            }
+        }, 'json');
+    }
+    function actualizarCandidato(candidato){
+        $("#frmAgregar")
+            .data('action', 'actualizar')
+            .data('id', candidato.Id_Candidato);
+        $("#nombre").val(candidato.Nombre);
+        $("#partido").val(candidato.Id_Partido);
+        $("#email").val(candidato.Correo);
+        $("#telefono").val(candidato.Telefono);
+        $("#fecha_nacimiento").val(candidato.Fecha_Nacimiento);
+        $("#foto").val(candidato.Img_Src);
+        $("#btnAgregar").text('Actualizar');
+    }
+    $(document).ready(function(){
+        mostrarPartidos();
+
+        $("#btnBuscarCandidato").click(function(ev){
+            ev.preventDefault();
+            abrir_ventana("candidatos", "buscar");
+        });
+
+        $('#frmAgregar').submit(e => {
+            e.preventDefault();
+            let action = $('#frmAgregar').data('action'),
+                id = $('#frmAgregar').data('id'),
+                name = $('#nombre').val(),
+                partido = $('#partido').val(),
+                email = $('#email').val(),
+                telefono = $('#telefono').val(),
+                fecha_nacimiento = $('#fecha_nacimiento').val(),
+                foto = $('#foto').val(),
+                data = {action, id, name, partido, email, telefono, fecha_nacimiento, foto};
+            console.log(fecha_nacimiento);
+            $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
+                resp = JSON.parse(resp);
+                console.log(resp);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                if (resp.response.status == 'ok') {
+                    limpiarcampos();
+                    $("#mensaje")
+                        .removeClass("alert-danger")
+                        .addClass("alert-success");
+                    mostrarCandidatos();
+                    $("#frmAgregar")
+                        .data('action', 'insertar')
+                        .data('id', 0);
+                    $("#btnAgregar").text('Ingresar');
+                } else {
+                    $("#mensaje")
+                        .removeClass("alert-success")
+                        .addClass("alert-danger");
+                }
+                setTimeout(()=>{
+                    $("#mensaje").toggleClass("d-none");
+                },5000);
+            });
+        })
+        .on('reset', e => {
+            limpiarcampos();
+        });;
+    });
+</script>

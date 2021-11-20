@@ -272,11 +272,11 @@ class Handler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
 
-        if self.path == '/':
+        elif self.path == '/':
             self.path = '/login.html'
             return SimpleHTTPRequestHandler.do_GET(self)
         
-        if self.path == '/index':
+        elif self.path == '/index':
             self.path = '/index.html'
             return SimpleHTTPRequestHandler.do_GET(self)
         
@@ -341,6 +341,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
+
+        else:
+            return SimpleHTTPRequestHandler.do_GET(self)
 
     def do_POST(self):
         #INGRESAR
