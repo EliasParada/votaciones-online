@@ -9,7 +9,7 @@
                 <tr>
                     <th colspan="8">
                         <input class="form-control" placeholder="Buscar candidato" type="text" 
-                            name="txtBuscar" id="txtBuscar">
+                            name="txtBuscarUsuario" id="txtBuscarUsuario">
                     </th>
                 </tr>
                 <tr>
@@ -78,13 +78,13 @@
                 id: usuario.Id_Usuario
             };
             $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                     if (resp.response.status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")
                             .addClass("alert-success");
-                            mostrarUsuarios();
+                        mostrarUsuarios();
                     } else {
                         $("#mensaje")
                             .removeClass("alert-success")

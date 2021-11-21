@@ -9,7 +9,7 @@
                 <tr>
                     <th colspan="8">
                         <input class="form-control" placeholder="Buscar candidato" type="text" 
-                            name="txtBuscar" id="txtBuscar">
+                            name="txtBuscarCandidato" id="txtBuscarCandidato">
                     </th>
                 </tr>
                 <tr>
@@ -80,7 +80,7 @@
             };
             $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
                 console.log(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                     if (resp.response.status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
@@ -101,7 +101,7 @@
     $(document).ready(function(){
         mostrarCandidatos();
 
-        $("#txtBuscar").on("keyup", function(){
+        $("#txtBuscarCandidato").on("keyup", function(){
             var value = $(this).val().toLowerCase();
             $("#tblCandidato tr").filter(function(){
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)

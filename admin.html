@@ -22,12 +22,20 @@
                     <a class="nav-link" href="#" data-modulo="candidatos" data-formulario="candidatos">Candidatos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" data-modulo="partidos" data-formulario="partidos">Paridos</a>
+                    <a class="nav-link" href="#" data-modulo="partidos" data-formulario="partidos">Partidos</a>
                 </li>
             </ul>
         </div>
     </nav>
     <div class="container">
+        <div class="row">
+            <div class="position-fixed zindex-fixed" style="z-index: 100000">
+                <div class="col-md-6">
+                    <div class="alert alert-success d-none mt-3" role="alert" id="mensaje">
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col col-md-6 position-absolute alert-dismissible fade show" id="usuarios_usuarios"></div>
             <div class="col col-md-6 position-absolute alert-dismissible fade show" id="usuarios_buscar"></div>

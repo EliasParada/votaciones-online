@@ -3,19 +3,19 @@
         <h5>Agregar partido</h5>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardPartido" aria-label="Close"></button>
     </div>
-    <form id="frmAgregar" class="px-4" data-action="insertar" data-id="0">
+    <form id="frmAgregarPartido" class="px-4" data-action="insertar" data-id="0">
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Partido Democratico Morado" 
+                    <label for="txtNombrePartido">Nombre</label>
+                    <input type="text" class="form-control" name="txtNombrePartido" id="txtNombrePartido" placeholder="Partido Democratico Morado" 
                     pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$" required>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="siglas">Siglas</label>
-                    <input type="text" name="siglas" id="siglas" class="form-control" placeholder="P.D.M."
+                    <label for="txtSiglasPartido">Siglas</label>
+                    <input type="text" name="txtSiglasPartido" id="txtSiglasPartido" class="form-control" placeholder="P.D.M."
                     pattern="[A-z]{3,4}" required>
                 </div>
             </div>
@@ -30,14 +30,14 @@
 
 <script>
     function limpiarcampos(){
-        $("#frmAgregar")[0].reset();
+        $("#frmAgregarPartido")[0].reset();
     }
     function actualizarPartido(partido){
-        $("#frmAgregar")
+        $("#frmAgregarPartido")
             .data('action', 'actualizar')
             .data('id', partido.Id_Partido);
-        $("#nombre").val(partido.Nombre);
-        $("#siglas").val(partido.Siglas);
+        $("#txtNombrePartido").val(partido.Nombre);
+        $("#txtSiglasPartido").val(partido.Siglas);
     }
 
     $(document).ready(function(){
@@ -46,24 +46,24 @@
             abrir_ventana("partidos", "buscar");
         });
 
-        $('#frmAgregar').submit(e => {
+        $('#frmAgregarPartido').submit(e => {
             e.preventDefault();
-            let action = $('#frmAgregar').data('action'),
-                id = $('#frmAgregar').data('id'),
-                name = $('#nombre').val(),
-                siglas = $('#siglas').val(),
+            let action = $('#frmAgregarPartido').data('action'),
+                id = $('#frmAgregarPartido').data('id'),
+                name = $('#txtNombrePartido').val(),
+                siglas = $('#txtSiglasPartido').val(),
                 data = {action, id, name, siglas};
 
             $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                 if (resp.response.status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")
                         .removeClass("alert-danger")
                         .addClass("alert-success");
                     mostrarPartidos();
-                    $("#frmAgregar")
+                    $("#frmAgregarPartido")
                         .data('action', 'insertar')
                         .data('id', 0);
                 } else {

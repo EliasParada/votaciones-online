@@ -314,6 +314,7 @@ class Handler(SimpleHTTPRequestHandler):
 
         elif self.path == '/mostrar_partidos':
             response = curd.mostrar_partidos()
+            print(response)
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))

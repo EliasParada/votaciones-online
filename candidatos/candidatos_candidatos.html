@@ -3,20 +3,19 @@
         <h5>Agregar candidato</h5>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardCandidato" aria-label="Close"></button>
     </div>
-
-    <form enctype="multipart/form-data"  id="frmAgregar" class="card-body" data-action="insertar" data-id="0">
+    <form id="frmAgregarCandidato" class="card-body" data-action="insertar" data-id="0">
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Carlos José Ortega Martinéz" 
-                    pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$">
+                    <label for="txtNombreCandidato">Nombre</label>
+                    <input type="text" class="form-control" name="txtNombreCandidato" id="txtNombreCandidato" placeholder="Carlos José Ortega Martinéz" 
+                    pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$" required>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="partido">Partido</label>
-                    <select name="partido" id="partido" class="form-control">
+                    <label for="slcPartido">Partido</label>
+                    <select name="slcPartido" id="slcPartido" class="form-control" required>
                         <option value="">Seleccione un partido</option>
                             
                     </select>
@@ -24,62 +23,52 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="foto">Foto</label>
-                    <input type="file" class="form-control" name="foto" id="foto" placeholder="Foto">
+                    <label for="imgFotoCandidato">Foto</label>
+                    <input type="file" class="form-control" name="imgFotoCandidato" id="imgFotoCandidato" required>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" class="form-control">
+                    <label for="txtCorreoCandidato">Email</label>
+                    <input type="email" name="txtCorreoCandidato" id="txtCorreoCandidato" class="form-control" 
+                    pattern="(^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$" required>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" name="telefono" id="telefono" class="form-control">
+                    <label for="txtTelefonoCandidato">Teléfono</label>
+                    <input type="tel" name="txtTelefonoCandidato" id="txtTelefonoCandidato" class="form-control"
+                    pattern="^[0-9]{4}[ |-][0-9]{4}$" required>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
-                    <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control">
+                    <label for="txtFechaNacimientoCandidato">Fecha de nacimiento</label>
+                    <input type="date" name="txtFechaNacimientoCandidato" id="txtFechaNacimientoCandidato" class="form-control" required>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <button type="submit" class="btn btn-secondary form-control mt-4">Agregar</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <button type="reset" class="btn btn-warning form-control mt-4">Reset</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <button type="button" class="btn btn-success form-control mt-4" id="btnBuscarCandidato">Buscar</button>
-                </div>
-            </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-secondary my-2">Agregar</button>
+            <button type="reset" class="btn btn-warning my-2">Reset</button>
+            <button type="button" class="btn btn-success my-2" id="btnBuscarCandidato">Buscar</button>
         </div>
     </form>
 </div>
 
 <script>
     function limpiarcampos(){
-        $("#frmAgregar")[0].reset();
+        $("#frmAgregarCandidato")[0].reset();
     }
     function mostrarPartidos(){
         $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
             if (resp.response.length > 0) {
-                $('#partido').html('');
-                $('#partido').append('<option value="">Seleccione un partido</option>');
+                $('#slcPartido').html('');
+                $('#slcPartido').append('<option value="">Seleccione un partido</option>');
                 resp.response.forEach(partido => {
-                    $('#partido').append('<option value="'+partido.Id_Partido+'">'+partido.Nombre+'</option>');
+                    $('#slcPartido').append('<option value="'+partido.Id_Partido+'">'+partido.Nombre+'</option>');
                 });
             } else {
                 console.log(resp.msg);
@@ -87,15 +76,15 @@
         }, 'json');
     }
     function actualizarCandidato(candidato){
-        $("#frmAgregar")
+        $("#frmAgregarCandidato")
             .data('action', 'actualizar')
             .data('id', candidato.Id_Candidato);
-        $("#nombre").val(candidato.Nombre);
-        $("#partido").val(candidato.Id_Partido);
-        $("#email").val(candidato.Correo);
-        $("#telefono").val(candidato.Telefono);
-        $("#fecha_nacimiento").val(candidato.Fecha_Nacimiento);
-        $("#foto").val(candidato.Img_Src);
+        $("#txtNombreCandidato").val(candidato.Nombre);
+        $("#slcPartido").val(candidato.Id_Partido);
+        $("#txtCorreoCandidato").val(candidato.Correo);
+        $("#txtTelefonoCandidato").val(candidato.Telefono);
+        $("#txtFechaNacimientoCandidato").val(candidato.Fecha_Nacimiento);
+        $("#imgFotoCandidato").val(candidato.Img_Src);
         $("#btnAgregar").text('Actualizar');
     }
     $(document).ready(function(){
@@ -106,29 +95,29 @@
             abrir_ventana("candidatos", "buscar");
         });
 
-        $('#frmAgregar').submit(e => {
+        $('#frmAgregarCandidato').submit(e => {
             e.preventDefault();
-            let action = $('#frmAgregar').data('action'),
-                id = $('#frmAgregar').data('id'),
-                name = $('#nombre').val(),
-                partido = $('#partido').val(),
-                email = $('#email').val(),
-                telefono = $('#telefono').val(),
-                fecha_nacimiento = $('#fecha_nacimiento').val(),
-                foto = $('#foto').val(),
+            let action = $('#frmAgregarCandidato').data('action'),
+                id = $('#frmAgregarCandidato').data('id'),
+                name = $('#txtNombreCandidato').val(),
+                partido = $('#slcPartido').val(),
+                email = $('#txtCorreoCandidato').val(),
+                telefono = $('#txtTelefonoCandidato').val(),
+                fecha_nacimiento = $('#txtFechaNacimientoCandidato').val(),
+                foto = $('#imgFotoCandidato').val(),
                 data = {action, id, name, partido, email, telefono, fecha_nacimiento, foto};
             console.log(fecha_nacimiento);
             $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
                 console.log(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                 if (resp.response.status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")
                         .removeClass("alert-danger")
                         .addClass("alert-success");
                     mostrarCandidatos();
-                    $("#frmAgregar")
+                    $("#frmAgregarCandidato")
                         .data('action', 'insertar')
                         .data('id', 0);
                     $("#btnAgregar").text('Ingresar');

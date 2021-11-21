@@ -3,46 +3,46 @@
         <h5>Agregar usuario</h5>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardUsuario" aria-label="Close"></button>
     </div>
-    <form id="frmAgregar" class="px-4" data-action="insertar" data-id="0">
+    <form id="frmAgregarUsuarioUsuario" class="px-4" data-action="insertar" data-id="0">
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Carlos José Ortega Martinéz" 
+                    <label for="txtNombreUsuario">Nombre</label>
+                    <input type="text" class="form-control" name="txtNombreUsuario" id="txtNombreUsuario" placeholder="Carlos José Ortega Martinéz" 
                     pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$">
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="name">DUI</label>
-                    <input type="text" name="name" id="dui" class="form-control" placeholder="10230789-3"
+                    <label for="txtDuiUsuario">DUI</label>
+                    <input type="text" name="txtDuiUsuario" id="txtDuiUsuario" class="form-control" placeholder="10230789-3"
                     pattern="[0-9]{8}[-][0-9]{1}" required>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" name="telefono" id="telefono" class="form-control">
+                    <label for="txtTelefonoUsuario">Teléfono</label>
+                    <input type="text" name="txtTelefonoUsuario" id="txtTelefonoUsuario" class="form-control">
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="foto">Foto</label>
-                    <input type="file" class="form-control" name="foto" id="foto" placeholder="Foto">
+                    <label for="imgFotoUsuario">Foto</label>
+                    <input type="file" class="form-control" name="imgFotoUsuario" id="imgFotoUsuario">
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" class="form-control">
+                    <label for="txtCorreoUsuario">Email</label>
+                    <input type="email" name="txtCorreoUsuario" id="txtCorreoUsuario" class="form-control">
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label for="pass">Contraseña</label>
-                    <input type="password" name="pass" id="pass" class="form-control">
+                    <label for="txtContraUsuario">Contraseña</label>
+                    <input type="password" name="txtContraUsuario" id="txtContraUsuario" class="form-control">
                 </div>
             </div>
         </div>
@@ -56,18 +56,18 @@
 
 <script>
     function limpiarcampos(){
-        $("#frmAgregar")[0].reset();
+        $("#frmAgregarUsuario")[0].reset();
     }
     function actualizarUsuario(usuario){
-        $("#frmAgregar")
+        $("#frmAgregarUsuario")
             .data('action', 'actualizar')
             .data('id', usuario.Id_Usuario);
-        $("#dui").val(usuario.DUI);
-        $("#nombre").val(usuario.Nombre);
-        $("#telefono").val(usuario.Telefono);
-        $("#email").val(usuario.Correo);
-        $("#pass").val(usuario.Contrasegna);
-        $("#foto").val(usuario.Foto);
+        $("#txtDuiUsuario").val(usuario.DUI);
+        $("#txtNombreUsuario").val(usuario.Nombre);
+        $("#txtTelefonoUsuario").val(usuario.Telefono);
+        $("#txtCorreoUsuario").val(usuario.Correo);
+        $("#txtContraUsuario").val(usuario.Contrasegna);
+        $("#imgFotoUsuario").val(usuario.Foto);
     }
     $(document).ready(function(){
         $("#btnBuscarUsuario").click(function(ev){
@@ -75,28 +75,28 @@
             abrir_ventana("usuarios", "buscar");
         });
 
-        $('#frmAgregar').submit(e => {
+        $('#frmAgregarUsuario').submit(e => {
             e.preventDefault();
-            let action = $('#frmAgregar').data('action'),
-                id = $('#frmAgregar').data('id'),
-                dui = $('#dui').val(),
-                name = $('#nombre').val(),
-                telefono = $('#telefono').val(),
-                correo = $('#email').val(),
-                password = $('#pass').val(),
-                foto = $('#foto').val(),
+            let action = $('#frmAgregarUsuario').data('action'),
+                id = $('#frmAgregarUsuario').data('id'),
+                dui = $('#txtDuiUsuario').val(),
+                name = $('#txtNombreUsuario').val(),
+                telefono = $('#txtTelefonoUsuario').val(),
+                correo = $('#txtCorreoUsuario').val(),
+                password = $('#txtContraUsuario').val(),
+                foto = $('#imgFotoUsuario').val(),
                 data = {action, id, dui, name, telefono, correo, password, foto};
 
             $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                 if (resp.response.status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")
                         .removeClass("alert-danger")
                         .addClass("alert-success");
                     mostrarUsuarios();
-                    $("#frmAgregar")
+                    $("#frmAgregarUsuario")
                         .data('action', 'insertar')
                         .data('id', 0);
                 } else {

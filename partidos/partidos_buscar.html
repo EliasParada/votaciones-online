@@ -4,12 +4,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarPartido" aria-label="Close"></button>
     </div>
     <div class="col-md-12">
-        <table class="table table-striped" id="tblCandidato">
+        <table class="table table-striped" id="tblPartidos">
             <thead>
                 <tr>
                     <th colspan="3">
                         <input class="form-control" placeholder="Buscar candidato" type="text" 
-                            name="txtBuscar" id="txtBuscar">
+                            name="txtBuscarPartido" id="txtBuscarPartido">
                     </th>
                 </tr>
                 <tr>
@@ -29,8 +29,8 @@
 <script>
     function mostrarPartidos(){
             $.get('http://localhost:3000/mostrar_partidos', (resp, status) => {
-                $('#tblCandidato tbody').html('');
-                let tbody = $('#tblCandidato tbody'),
+                $('#tblPartidos tbody').html('');
+                let tbody = $('#tblPartidos tbody'),
                     html = '';
                 if (resp.response.length > 0) {
                     resp.response.forEach(partido => {
@@ -70,13 +70,13 @@
                     id: partido.Id_Partido
                 };
                 $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
-                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
+                    $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
                         if (resp.response.status == 'ok') {
                             limpiarcampos();
                             $("#mensaje")
                                 .removeClass("alert-danger")
                                 .addClass("alert-success");
-                                mostrarCandidatos();
+                                mostrarPartidos();
                         } else {
                             $("#mensaje")
                                 .removeClass("alert-success")
