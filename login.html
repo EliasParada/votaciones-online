@@ -58,6 +58,7 @@
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <img src="" alt="" id="preview" class="img-circle img-fluid ">
+                                        <canvas id="previsualizar" class="img-circle img-fluid "></canvas>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -98,6 +99,11 @@
     
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <script>
+        function testai() {
+            $.get('http://localhost:3000/prediccion_votos', (respuesta) => {
+                console.log(respuesta.response);
+            }, 'json');
+        }
         function access() {
             $.get('http://localhost:3000/access', (data)=>{
                 console.log(data);
@@ -110,15 +116,23 @@
         }
         $(document).ready(function(){
             access();
+            testai();
             $('#foto').on('change',function(){
-                let size = this.files[0].size;
-                console.log(size);
-                let reader = new FileReader();
-                reader.onload = function(e){
-                    let result = e.target.result;
-                    $('#preview').attr('src',result);
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onloadend = function(){
+                    $('#preview').attr('src',reader.result);
+                    var canvas = document.getElementById('previsualizar');
+                    var context = canvas.getContext('2d');
+                    var img = new Image();
+                    img.onload = function(){
+                        canvas.width = 250;
+                        canvas.height = 250;
+                        context.drawImage(img, canvas.width/2 - img.width/2, canvas.height/2 - img.height/2);
+                    }
+                    img.src = reader.result;
                 }
-                reader.readAsDataURL(this.files[0]);
+                reader.readAsDataURL(file);
             });
 
             $('#frmIngresar').submit(e => {
@@ -141,24 +155,38 @@
 
             $('#frmRegistro').submit(e => {
                 e.preventDefault();
+                let canvas = $('#previsualizar')[0];
+                let ctx = canvas.getContext('2d');
+                console.log(canvas, canvas.width, canvas.height);
+                let pixeles = [];
+                for(i=0; i<250; i++){
+                    for(j=0; j< 250; j++){
+                        let imgdata = ctx.getImageData(j,i,1,1).data,
+                            r = imgdata[0],
+                            g = imgdata[1],
+                            b = imgdata[2];
+                        pixeles.push([r,g,b]);
+                    }
+                }
+                console.log(pixeles);
+                // pixeles = pixeles.join(",");
                 let action = $('#frmRegistro').data('action'),
                     name = $('#frmRegistro #name').val(),
                     dui = $('#frmRegistro #dui').val(),
-                    tel = $('#frmRegistro #tel').val(),
-                    email = $('#frmRegistro #email').val(),
+                    telefono = $('#frmRegistro #tel').val(),
+                    correo = $('#frmRegistro #email').val(),
                     password = $('#frmRegistro #password').val(),
                     foto = $('#frmRegistro #foto')[0].files[0].name,
-                    data = {action, name, dui, tel, email, password, foto};
-
+                    data = {action, name, dui, telefono, correo, password, foto, pixeles};
+                console.log(data);
                 $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {
-                    res = JSON.parse(res);
                     console.log(res);
-                    if (res.status == 'ok') {
+                    if (res.response[0].status == 'ok') {
                         window.location.href = 'http://localhost:3000/index';
                     } else {
                         console.log(res.code);
                     }
-                });
+                }, 'json');
             });
         });
     </script>

@@ -101,6 +101,17 @@
         }
         $(document).ready(function(){
             mostrarCandidatos();
+
+            $('#salir').click(e => {
+                $.post('http://localhost:3000/salir', (data)=>{
+                    console.log(data);
+                    if (data.response.salir == true) {
+                        window.location.href = 'http://localhost:3000/login';
+                    } else {
+                        console.log("Error al salir");
+                    }
+                }, 'json');
+            });
         });
     </script>
 </body>

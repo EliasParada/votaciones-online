@@ -8,6 +8,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+from PIL import Image
 
 #Crear un dataset de entrenamiento
 dataset = pd.read_csv('predict.csv', sep=';')
@@ -56,19 +57,20 @@ class crud():
             print('No se pudo conectar a la base de datos')
 
     #FUNCION PARA EJECUTAR SQL
-    def ejecutar_sql(self, sql, value):
+    def ejecutar_sql(self, sql, value, id):
         try:
+            print(sql, value, id)
             cursor = self.conn.cursor()
             cursor.execute(sql, value)
             self.conn.commit()
-            return {'status': 'ok', 'msg': 'Se han realizado los cambios correctamente'}
+            return {'status': 'ok', 'msg': 'Se han realizado los cambios correctamente'}, id
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudo realizar la consulta', 'code': str(err)}
 
     #FUNCION PARA ADMINISTRAR CANDIDATOS
     def administrar_candidatos(self, candidato):
         try:
-            print(candidato)
+            id = None
             if candidato['action'] == 'insertar':
                 sql = "INSERT INTO candidatos (Id_Candidato, Nombre, Partido, Correo, Telefono, Fecha_Nacimiento, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 val = (self.crear_id('candidatos'), candidato['name'], candidato['partido'], candidato['email'], candidato['telefono'], candidato['fecha_nacimiento'], candidato['foto'])
@@ -80,7 +82,7 @@ class crud():
                 val = (candidato['id'],)
             else:
                 print('Accion no valida')
-            return self.ejecutar_sql(sql, val)
+            return self.ejecutar_sql(sql, val, id)
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
     
@@ -98,16 +100,18 @@ class crud():
                 val = (partido['id'],)
             else:
                 print('Accion no valida')
-            return self.ejecutar_sql(sql, val)
+            return self.ejecutar_sql(sql, val, None)
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
 
     #CONSULTA PARA ADMINISTRAR USUARIOS
     def administrar_usuarios(self, usuario):
         try:
+            id = None
             if usuario['action'] == 'insertar':
                 sql = "INSERT INTO usuarios (Id_Usuario, DUI, Nombre, Telefono, Correo, Contrasegna, Img_Src) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                val = (self.crear_id('usuarios'), usuario['dui'], usuario['name'], usuario['telefono'], usuario['correo'], usuario['password'], usuario['foto'])
+                id = self.crear_id('usuarios')
+                val = (id, usuario['dui'], usuario['name'], usuario['telefono'], usuario['correo'], usuario['password'], 'profile/profile'+str(id)+'.jpg')
             elif usuario['action'] == 'actualizar':
                 sql = "UPDATE usuarios SET DUI = %s, Nombre = %s, Telefono = %s, Correo = %s, Contrasegna = %s, Img_Src = %s WHERE Id_Usuario = %s"
                 val = (usuario['dui'], usuario['name'], usuario['telefono'], usuario['correo'], usuario['password'], usuario['foto'], usuario['id'])
@@ -116,7 +120,7 @@ class crud():
                 val = (usuario['id'],)
             else:
                 print('Accion no valida')
-            return self.ejecutar_sql(sql, val)
+            return self.ejecutar_sql(sql, val, id)
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
 
@@ -124,10 +128,12 @@ class crud():
     def administrar_votos(self, voto):
         try:
             date = datetime.datetime.now().date()
+            time = datetime.datetime.now().time()
             print(date)
             if voto['action'] == 'insertar':
-                sql = "INSERT INTO votaciones (Id_Votacion, Id_Candidato, Id_Usuario, Fecha) VALUES (%s, %s, %s, %s)"
-                val = (self.crear_id('votos'), voto['candidato'], datos['id'], date)
+                sql = "INSERT INTO votaciones (Id_Votacion, Id_Candidato, Id_Usuario, Fecha, Hora) VALUES (%s, %s, %s, %s, %s)"
+                print(time)
+                val = (self.crear_id('votos'), voto['candidato'], datos['id'], date, time)
             elif voto['action'] == 'actualizar':
                 sql = "UPDATE votaciones SET Id_Candidato = %s, Id_Usuario = %s WHERE Id_Voto = %s"
                 val = (voto['candidato'], voto['usuario'], voto['id'])
@@ -136,7 +142,7 @@ class crud():
                 val = (voto['id'],)
             else:
                 print('Accion no valida')
-            return self.ejecutar_sql(sql, val)
+            return self.ejecutar_sql(sql, val, None)
         except Exception as e:
             return {'status':'error', 'msg': 'No se pudo realizar la accion', 'code': str(e)}
 
@@ -206,7 +212,7 @@ class crud():
     def mostrar_votos(self):
         try:
             cursor = self.conn.cursor(dictionary=True)
-            sql = "SELECT candidatos.Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM candidatos, votaciones WHERE candidatos.Id_Candidato = votaciones.Id_Candidato GROUP BY candidatos.Id_Candidato"
+            sql = "SELECT candidatos.Id_Candidato, candidatos.Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM candidatos, votaciones WHERE candidatos.Id_Candidato = votaciones.Id_Candidato GROUP BY candidatos.Id_Candidato"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
@@ -214,16 +220,28 @@ class crud():
             return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err), 'votos':{}}
 
     #MOSTRAR VOTOS POR HORAS
-    def votos_intervalo(self, fecha_inicio, fecha_fin):
+    def votos_intervalo(self, id, fecha_inicio, fecha_fin):
         try:
             cursor = self.conn.cursor(dictionary=True)
-            sql = "SELECT Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM votaciones WHERE votaciones.Fecha BETWEEN %s AND %s"
-            val = (fecha_inicio, fecha_fin)
+            sql = "SELECT candidatos.Id_Candidato, candidatos.Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM candidatos, votaciones WHERE candidatos.Id_Candidato = votaciones.Id_Candidato AND votaciones.Hora BETWEEN %s AND %s AND votaciones.Id_Candidato = %s GROUP BY candidatos.Id_Candidato"
+            # sql = "SELECT Nombre, COUNT(votaciones.Id_Votacion) AS Votos FROM votaciones WHERE votaciones.Hora BETWEEN %s AND %s"
+            val = (fecha_inicio, fecha_fin, id)
             cursor.execute(sql, val)
             result = cursor.fetchall()
             return result
         except mysql.connector.Error as err:
             return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err), 'votos':{}}
+
+    def voto_listo(self, id):
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            sql = "SELECT Id_Votacion FROM votaciones WHERE Id_Usuario = %s"
+            val = (id,)
+            cursor.execute(sql, val)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            return {'status':'error', 'msg': 'No se pudieron encontrar los votos', 'code': str(err)}
 
     #CREAR ID
     def crear_id(self, table):
@@ -342,6 +360,46 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))
+        
+        elif self.path == '/voto_listo':
+            response = curd.voto_listo(datos['id'])
+            print('Votos listos?',response)
+            if response != []:
+                result = True
+            else:
+                result = False
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=result)).encode('utf-8'))
+
+        elif self.path == '/prediccion_votos':
+            hora_actual = datetime.datetime.now().strftime("%H:%M:%S")
+            hora_iniciomin = (datetime.datetime.now() - datetime.timedelta(minutes=10)).strftime("%H:%M:%S")
+            hora_inicio = datetime.datetime.now() - datetime.timedelta(hours=1)
+            hora_inicio = hora_inicio.strftime("%H:%M:%S")
+            print(hora_actual, hora_iniciomin, hora_inicio)
+            votos_totales = curd.mostrar_votos()
+            print(votos_totales)
+            prediccion = {}
+            for voto in votos_totales:
+                votos = curd.votos_intervalo(voto['Id_Candidato'], hora_inicio, hora_actual)
+                if votos != []:
+                    votos_totales[voto['Id_Candidato']-1]['votos_hora'] = votos[0]['Votos']
+                    votos_totales[voto['Id_Candidato']-1]['votos_antiguos'] = votos_totales[voto['Id_Candidato']-1]['Votos'] - votos[0]['Votos']
+                else:
+                    votos_totales[voto['Id_Candidato']-1]['votos_hora'] = 0
+                    votos_totales[voto['Id_Candidato']-1]['votos_antiguos'] = 0
+
+                nombre = votos_totales[voto['Id_Candidato']-1]['Nombre'].split(' ')[0]
+                prediccion[nombre+str(voto['Id_Candidato'])] = [int(votos_totales[voto['Id_Candidato']-1]['votos_hora']), int(votos_totales[voto['Id_Candidato']-1]['Votos'])]
+                
+                prediccion[nombre+str(voto['Id_Candidato'])] = np.array(prediccion[nombre+str(voto['Id_Candidato'])])
+                prediccion[nombre+str(voto['Id_Candidato'])] = int(model.predict(prediccion[nombre+str(voto['Id_Candidato'])].reshape(1,2))[0][0])
+                
+            print(prediccion)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(dict(response=prediccion)).encode('utf-8'))
 
         else:
             return SimpleHTTPRequestHandler.do_GET(self)
@@ -356,10 +414,9 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(data)
 
             result = curd.ingresar(data['dui'], data['name'], data['password'])
-            print(result[1][0])
+            print(result[1])
             if result[0]['status'] == 'ok':
                 # datos = {'dui':data['dui'], 'name':data['name'], 'password':data['password']}
-                #Agregar dui y password a los datos
                 datos['login'] = True
                 datos['id'] = (result[1][0]['Id_Usuario'])
                 datos['dui'] = data['dui']
@@ -369,21 +426,6 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(json.dumps(dict(response=result[0])).encode('utf-8'))
-            
-        #GUARDAR FOTO (AUN NO FUNIONA)
-        elif self.path == '/guardarFoto':
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-            data = data.decode('utf-8')
-            data = parse.unquote(data)
-            data = json.loads(data)
-            with open('profile/' + data['name'], 'wb') as f:
-                f.write(data['foto'].encode('utf-8'))
-            response = {'status': 'ok', 'msg': 'Foto guardada'}
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(dict(response)).encode('utf-8'))
 
         #CONSULTAS PARA CANDIDATOS
         elif self.path == '/administrar_candidatos':
@@ -419,8 +461,25 @@ class Handler(SimpleHTTPRequestHandler):
             data = data.decode('utf-8')
             data = parse.unquote(data)
             data = json.loads(data)
+            # id = crud.crear_id('usuarios')
             response = curd.administrar_usuarios(data)
             print(response)
+            if data['action'] == 'insertar':
+                if response[0]['status'] == 'ok':
+                    datos['login'] = True
+                    datos['id'] = response[1]
+                    datos['dui'] = data['dui']
+                    datos['pass'] = data['password']
+                    datos['name'] = data['name']
+
+                    matriz = data["pixeles"]
+                    matriz = [matriz[i:i+250] for i in range(0, len(matriz), 250)]
+                    matriz = np.array(matriz)
+                    print(matriz.shape)
+
+                    im = Image.fromarray((matriz).astype(np.uint8))
+                    im.save("profile/profile"+str(response[1])+".jpg")
+                    print(matriz.shape)
             self.send_response(200)
             self.end_headers()
             self.wfile.write(json.dumps(dict(response=response)).encode('utf-8'))

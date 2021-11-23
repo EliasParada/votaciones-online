@@ -69,16 +69,18 @@
                     </div>
                     <!-- boton de actualizar -->
                     <div class="col-sm-12">
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" id="actualizar">
                             Actualizar
                         </button>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-sm-6" id="grafica">
+                        <h3>Votos actuales</h3>
                         <canvas id="myChart" width="400" height="400"></canvas>
                     </div>
                     <div class="col-sm-6" id="prediccion">
+                        <h3>Prediccion</h3>
                         <canvas id="myPredict" width="400" height="400"></canvas>
                     </div>
                 </div>
@@ -92,7 +94,8 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <script>
         let votos = {};
-        let colors = [];
+        let colors = [],
+            prediccionColor = [];
         function randomColor() {
             var letters = '0123456789ABCDEF';
             var color = '#';
@@ -100,6 +103,35 @@
                 color += letters[Math.floor(Math.random() * 16)];
             }
             return color;
+        }
+        function votoListo() {
+            $.get('http://localhost:3000/voto_listo', (data) => {
+                console.log(data);
+                if (data.response == true) {
+                    $('#frmVotar').find('button, select').attr('disabled', true);
+                    $('#frmVotar').find('button').removeClass('btn-primary').addClass('btn-success').text('Votacion realizada');
+                    $('#candidato').empty();
+                } else {
+                    mostrarCandidatos();
+                }
+            }, 'json');
+        }
+        function prediccion() {
+            $.get('http://localhost:3000/prediccion_votos', (respuesta) => {
+                votos = respuesta.response;
+                for (let i = 0; i < Object.keys(votos).length; i++) {
+                    prediccionColor.push(randomColor());
+                }
+                let myChart = new barChar({
+                    canvas: $("#myPredict")[0],
+                    data: votos,
+                    padding: 25,
+                    gridScale: 5,
+                    gridColor: "#B9B6B6",
+                    colors: colors
+                });
+                myChart.draw()
+            }, 'json');
         }
         let barChar = function(data) {
             this.options = data;
@@ -196,6 +228,10 @@
         function drawBar(ctx, x, y, width, height, color) {
             ctx.save();
             ctx.fillStyle = color;
+            ctx.shadowColor = "black";
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 1;
             ctx.fillRect(x, y, width, height);
             ctx.restore();
         }
@@ -205,8 +241,7 @@
                 data.response.forEach(voto => {
                     Nombre = voto.Nombre.split(" ")[0];
                     Nombre.toString();
-                    votos[Nombre] = voto.Votos;
-                    console.log(votos);
+                    votos[Nombre+voto.Id_Candidato] = voto.Votos;
                 });
                 for (let i = 0; i < Object.keys(votos).length; i++) {
                     colors.push(randomColor());
@@ -252,15 +287,15 @@
             
         }
         $(document).ready(function(){
-            mostrarCandidatos();
-            getVotos();
             access();
+            votoListo();
+            getVotos();
+            prediccion();
             // let elections = {'Carlos':100, 'Elía':45, 'candidato3':300, 'candidato4':30, 'candidato5':500};
-            console.log(votos);
-            let myCanvas = document.getElementById("myChart");
-            myCanvas.width = 250;
-            myCanvas.height = 250;
-            let ctx = myCanvas.getContext("2d");
+            let myCanvas = document.getElementById("myChart"),
+                ctx = myCanvas.getContext("2d"),
+                myPredict = document.getElementById("myPredict"),
+                ctxPredict = myPredict.getContext("2d");
 
             $('#salir').click(e => {
                 $.post('http://localhost:3000/salir', (data)=>{
@@ -273,6 +308,13 @@
                 }, 'json');
             });
 
+            $('#actualizar').click(e => {
+                ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                ctxPredict.clearRect(0, 0, myPredict.width, myPredict.height);
+                getVotos();
+                prediccion();
+            });
+
             $('#frmVotar').submit(e => {
                 e.preventDefault();
                 let action = $('#frmVotar').data('action'),
@@ -281,7 +323,17 @@
                     console.log(candidato);
                     $.post('http://localhost:3000/administrar_votos', JSON.stringify(data), (resp, status) => {
                         console.log(resp);
-                    });
+                        if (resp.response[0].status == 'ok') {
+                            console.log("Voto registrado");
+                            ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                            ctxPredict.clearRect(0, 0, myPredict.width, myPredict.height);
+                            getVotos();
+                            prediccion();
+                            votoListo();
+                        } else {
+                            console.log("Error al registrar voto");
+                        }
+                    }, 'json');
             });
         });
     </script>

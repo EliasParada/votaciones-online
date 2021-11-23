@@ -79,7 +79,7 @@
                                             </div>
                                         </div>
                                         <div class="row">
-                                            <a href="login" class="btn btn-danger">Cerrar sesión</a>
+                                            <a href="login" class="btn btn-danger" id="salir">Cerrar sesión</a>
                                         </div>
                                     </div>
                                 </div>
@@ -97,10 +97,10 @@
 <!-- Always remember to call the above files first before calling the bootstrap.min.js file -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <script>
-        function mostrarCandidatos(){
+        function mostrarUsuario(){
             $.get('http://localhost:3000/perfil', (resp, status) => {
                 console.log(resp.response[0]);
-                // $('#foto_perfil').attr('src', resp.response[0].Img_Src);
+                $('#foto_perfil').attr('src', resp.response[0].Img_Src);
                 $('#nombre').text(resp.response[0].Nombre);
                 $('#telefono').text(resp.response[0].Telefono);
                 $('#correo').text(resp.response[0].Correo);
@@ -108,7 +108,18 @@
         }
 
         $(document).ready(function(){
-            mostrarCandidatos();
+            mostrarUsuario();
+
+            $('#salir').click(e => {
+                $.post('http://localhost:3000/salir', (data)=>{
+                    console.log(data);
+                    if (data.response.salir == true) {
+                        window.location.href = 'http://localhost:3000/login';
+                    } else {
+                        console.log("Error al salir");
+                    }
+                }, 'json');
+            });
             
         });
     </script>

@@ -56,7 +56,7 @@
 
             $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                 if (resp.response.status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")

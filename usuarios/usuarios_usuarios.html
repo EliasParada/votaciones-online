@@ -3,7 +3,7 @@
         <h5>Agregar usuario</h5>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardUsuario" aria-label="Close"></button>
     </div>
-    <form id="frmAgregarUsuarioUsuario" class="px-4" data-action="insertar" data-id="0">
+    <form id="frmAgregarUsuario" class="px-4" data-action="insertar" data-id="0">
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
@@ -89,7 +89,7 @@
 
             $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg).append('<button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#mensaje" aria-label="Close"></button>');
+                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
                 if (resp.response.status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")
