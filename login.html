@@ -209,7 +209,8 @@
                     correo = $('#frmRegistro #email').val(),
                     password = $('#frmRegistro #password').val(),
                     login = true,
-                    data = {action, name, dui, telefono, correo, password, foto, pixeles};
+                    actualizarFoto = false,
+                    data = {action, name, dui, telefono, correo, password, foto, pixeles, actualizarFoto};
                 console.log(data);
                 $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {
                     console.log(res);
