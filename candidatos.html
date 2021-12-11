@@ -103,7 +103,7 @@
             mostrarCandidatos();
 
             $('#salir').click(e => {
-                $.post('http://localhost:3000/salir', (data)=>{
+                $.post('http://localhost:3000/salir', JSON.stringify({}), (data)=>{
                     console.log(data);
                     if (data.response.salir == true) {
                         window.location.href = 'http://localhost:3000/login';

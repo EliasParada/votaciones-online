@@ -70,8 +70,8 @@
                     id: partido.Id_Partido
                 };
                 $.post('http://localhost:3000/administrar_partidos', JSON.stringify(data), (resp, status) => {
-                    $("#mensaje").toggleClass("d-none").text(resp.response.msg);
-                        if (resp.response.status == 'ok') {
+                    $("#mensaje").toggleClass("d-none").text(resp.response[0].msg);
+                        if (resp.response[0].status == 'ok') {
                             limpiarcampos();
                             $("#mensaje")
                                 .removeClass("alert-danger")

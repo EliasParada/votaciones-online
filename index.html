@@ -9,7 +9,6 @@
 </head>
 <body>
     <div id="father">
-        <!-- Menu -->
         <div id="menu">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <a class="navbar-brand" href="index">Elecciones</a>
@@ -37,7 +36,6 @@
                 </div>
             </nav>
         </div>
-        <!-- Elegir -->
         <div id="elegir">
             <div class="container">
                 <div class="row">
@@ -47,14 +45,12 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-12">
-                        <!-- formulario vertical -->
                         <form method="post" id="frmVotar" data-action="insertar">
-                            <div class="form-group">
-                                <label for="candidato">Candidato</label>
-                                <select class="form-control" id="candidato" name="candidato">
-                                </select>
+                            <div class="container-fluid">
+                                <div class="row flex-row flex-nowrap" id="cardsCandidatos" style="overflow: hidden; overflow-x: auto; height: fit-content;">
+                                    <!--  -->
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Elegir</button>
                         </form>
                     </div>
                 </div>
@@ -108,11 +104,9 @@
             $.get('http://localhost:3000/voto_listo', (data) => {
                 console.log(data);
                 if (data.response == true) {
-                    $('#frmVotar').find('button, select').attr('disabled', true);
-                    $('#frmVotar').find('button').removeClass('btn-primary').addClass('btn-success').text('Votacion realizada');
-                    $('#candidato').empty();
+                    $('#cardsCandidatos').find('button').attr('disabled', true);
                 } else {
-                    mostrarCandidatos();
+                    $('#cardsCandidatos').find('button').attr('disabled', false);
                 }
             }, 'json');
         }
@@ -131,6 +125,29 @@
                     colors: colors
                 });
                 myChart.draw()
+            }, 'json');
+        }
+        function votar(candidato) {
+            let myCanvas = document.getElementById("myChart"),
+                ctx = myCanvas.getContext("2d"),
+                myPredict = document.getElementById("myPredict"),
+                ctxPredict = myPredict.getContext("2d");
+            let action = 'insertar';
+            candidato = candidato,
+            data = {action, candidato};
+            console.log(candidato);
+            $.post('http://localhost:3000/administrar_votos', JSON.stringify(data), (resp, status) => {
+                console.log(resp);
+                if (resp.response[0].status == 'ok') {
+                    console.log("Voto registrado");
+                    ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                    ctxPredict.clearRect(0, 0, myPredict.width, myPredict.height);
+                    getVotos();
+                    prediccion();
+                    votoListo();
+                } else {
+                    console.log("Error al registrar voto");
+                }
             }, 'json');
         }
         let barChar = function(data) {
@@ -176,7 +193,6 @@
                         gridValue += this.options.gridScale;
                     }
 
-                    //drawing the bars
                     let barIndex = 0;
                     let numberOfBars = Object.keys(this.options.data).length;
                     let barSize = (canvasActualWidth) / numberOfBars;
@@ -260,13 +276,26 @@
         }
         function mostrarCandidatos(){
             $.get('http://localhost:3000/mostrar_candidatos', (resp, status) => {
-                console.log(resp);
+                console.log(resp.response);
                 if (resp.response.length > 0) {
-                    $('#candidato').html('');
-                    $('#candidato').append('<option value="">Seleccione un candidato</option>');
+                    let cards = '';
+                    resp.response.forEach(candidato => {
+                        console.log(candidato);
+                        cards += `<div class="col-xs-4" style="width: 152px; margin: 1px;">
+                                    <div class="card" style="width: 152px;">
+                                        <img class="card-img-top" src="${candidato.Img_Src}" alt="Card image cap" height="150" style="width: 150px;">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${candidato.Nombre}</h5>
+                                            <button type="button" class="btn btn-primary" onclick="votar(${candidato.Id_Candidato})" disabled>Votar</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                    });
+                    $('#cardsCandidatos').html(cards);
                     resp.response.forEach(candidato => {
                         $('#candidato').append('<option value="'+candidato.Id_Candidato+'">'+candidato.Nombre+'</option>');
                     });
+                    votoListo();
                 } else {
                     console.log(resp.msg);
                 }
@@ -276,6 +305,9 @@
         function access() {
             $.get('http://localhost:3000/access', (data)=>{
                 console.log(data);
+                getVotos();
+                prediccion();
+                mostrarCandidatos();
                 if (data.response.access == true) {
                     console.log("Acceso");
                 } else {
@@ -288,9 +320,6 @@
         }
         $(document).ready(function(){
             access();
-            votoListo();
-            getVotos();
-            prediccion();
             // let elections = {'Carlos':100, 'Elía':45, 'candidato3':300, 'candidato4':30, 'candidato5':500};
             let myCanvas = document.getElementById("myChart"),
                 ctx = myCanvas.getContext("2d"),
@@ -298,7 +327,7 @@
                 ctxPredict = myPredict.getContext("2d");
 
             $('#salir').click(e => {
-                $.post('http://localhost:3000/salir', (data)=>{
+                $.post('http://localhost:3000/salir', JSON.stringify({}), (data)=>{
                     console.log(data);
                     if (data.response.salir == true) {
                         window.location.href = 'http://localhost:3000/login';
@@ -313,27 +342,6 @@
                 ctxPredict.clearRect(0, 0, myPredict.width, myPredict.height);
                 getVotos();
                 prediccion();
-            });
-
-            $('#frmVotar').submit(e => {
-                e.preventDefault();
-                let action = $('#frmVotar').data('action'),
-                    candidato = $('#candidato').val(),
-                    data = {action, candidato};
-                    console.log(candidato);
-                    $.post('http://localhost:3000/administrar_votos', JSON.stringify(data), (resp, status) => {
-                        console.log(resp);
-                        if (resp.response[0].status == 'ok') {
-                            console.log("Voto registrado");
-                            ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
-                            ctxPredict.clearRect(0, 0, myPredict.width, myPredict.height);
-                            getVotos();
-                            prediccion();
-                            votoListo();
-                        } else {
-                            console.log("Error al registrar voto");
-                        }
-                    }, 'json');
             });
         });
     </script>

@@ -15,7 +15,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label for="txtDuiUsuario">DUI</label>
-                    <input type="text" name="txtDuiUsuario" id="txtDuiUsuario" class="form-control" placeholder="10230789-3"
+                    <input type="text" name="txtDuiUsuario" id="txtDuiUsuario" placeholder="09583162-4" class="form-control"
                     pattern="[0-9]{8}[-][0-9]{1}" required>
                 </div>
             </div>
@@ -32,6 +32,23 @@
                     <label for="imgFotoUsuario">Foto</label>
                     <input type="file" class="form-control" name="imgFotoUsuario" id="imgFotoUsuario">
                 </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="chkActualizarFoto" id="chkActualizarFoto" value="1">
+                        <label class="form-check-label" for="chkActualizarFoto">
+                            Actualizar foto
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="imgFotoUsuarioPreview">Foto</label>
+                    <div class="img-preview">
+                        <img src="media/default.jpg" alt="Foto de usuario" class="img-fluid" id="imgFotoUsuarioPreview">
+                        <canvas id="canvasFotoUsuario" width="200" height="200" hidden></canvas>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
@@ -47,7 +64,7 @@
             </div>
         </div>
         <div class="col-auto">
-            <button type="submit" class="btn btn-secondary my-2">Agregar</button>
+            <button type="submit" class="btn btn-secondary my-2" id="btnEnviar" disabled>Agregar</button>
             <button type="reset" class="btn btn-warning my-2">Reset</button>
             <button type="button" class="btn btn-success my-2" id="btnBuscarUsuario">Buscar</button>
         </div>
@@ -57,6 +74,7 @@
 <script>
     function limpiarcampos(){
         $("#frmAgregarUsuario")[0].reset();
+        $("#imgFotoUsuarioPreview").attr("src", "media/default.jpg");
     }
     function actualizarUsuario(usuario){
         $("#frmAgregarUsuario")
@@ -67,7 +85,23 @@
         $("#txtTelefonoUsuario").val(usuario.Telefono);
         $("#txtCorreoUsuario").val(usuario.Correo);
         $("#txtContraUsuario").val(usuario.Contrasegna);
-        $("#imgFotoUsuario").val(usuario.Foto);
+        console.log(usuario.Img_Src);
+        $('#imgFotoUsuarioPreview').attr('src', usuario.Img_Src);
+        $("#chkActualizarFoto").prop("checked", true);
+        $("#btnEnviar").attr("disabled", false);
+        $('#txtDuiUsuario').addClass('is-valid').removeClass('is-invalid');
+    }
+    function isDUI(dui) {
+        const duiRegExp = /(^\d{8})-(\d$)/;
+        if (!duiRegExp.test(dui)) return false;
+
+        let sum = 0;
+        const [digits, verifier] = dui.split('-');
+        for (let i = 0; i < digits.length; i++) {
+            sum += Number(digits[i]) * (digits.length + 1 - i);
+        }
+
+        return Number(verifier) === (10 - (sum % 10)) % 10 && sum > 0;
     }
     $(document).ready(function(){
         $("#btnBuscarUsuario").click(function(ev){
@@ -75,8 +109,49 @@
             abrir_ventana("usuarios", "buscar");
         });
 
+        $('#txtDuiUsuario').on('keyup', function(){
+            if (!isDUI($(this).val())) {
+                $(this).addClass('is-invalid').removeClass('is-valid');
+                $('#btnEnviar').attr('disabled', true);
+            } else {
+                $(this).removeClass('is-invalid').addClass('is-valid');
+                $('#btnEnviar').attr('disabled', false);
+            }
+        });
+
+        $("#imgFotoUsuario").change(function(ev){
+            var file = ev.target.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e){
+                $("#imgFotoUsuarioPreview").attr('src', e.target.result);
+                let canvas = $("#canvasFotoUsuario")[0];
+                let ctx = canvas.getContext("2d");
+                canvas.width = 250;
+                canvas.height = 250;
+                let img = new Image();
+                img.src = e.target.result;
+                img.onload = function(){
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    $("#imgFotoUsuarioPreview").val(canvas.toDataURL("image/png"));
+                }
+            }
+            reader.readAsDataURL(file);
+        });
+
         $('#frmAgregarUsuario').submit(e => {
             e.preventDefault();
+            let canvas = $('#canvasFotoUsuario')[0];
+            let ctx = canvas.getContext('2d');
+            let pixeles = [];
+                for(i=0; i<250; i++){
+                    for(j=0; j< 250; j++){
+                        let imgdata = ctx.getImageData(j,i,1,1).data,
+                            r = imgdata[0],
+                            g = imgdata[1],
+                            b = imgdata[2];
+                        pixeles.push([r,g,b]);
+                    }
+                }
             let action = $('#frmAgregarUsuario').data('action'),
                 id = $('#frmAgregarUsuario').data('id'),
                 dui = $('#txtDuiUsuario').val(),
@@ -84,13 +159,16 @@
                 telefono = $('#txtTelefonoUsuario').val(),
                 correo = $('#txtCorreoUsuario').val(),
                 password = $('#txtContraUsuario').val(),
-                foto = $('#imgFotoUsuario').val(),
-                data = {action, id, dui, name, telefono, correo, password, foto};
+                actualizarFoto = $('#chkActualizarFoto').is(':checked'),
+                login = false,
+                data = {action, id, dui, name, telefono, correo, password, login, pixeles, actualizarFoto};
+            console.log(data);
 
             $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
                 resp = JSON.parse(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
-                if (resp.response.status == 'ok') {
+                console.log(resp.response[0]);
+                $("#mensaje").toggleClass("d-none").text(resp.response[0].msg);
+                if (resp.response[0].status == 'ok') {
                     limpiarcampos();
                     $("#mensaje")
                         .removeClass("alert-danger")

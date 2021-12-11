@@ -106,12 +106,23 @@
                 $('#correo').text(resp.response[0].Correo);
             }, 'json');
         }
+        function access() {
+            $.get('http://localhost:3000/access', (data)=>{
+                console.log(data);
+                if (data.response.access == true) {
+                    console.log("Acceso");
+                    mostrarUsuario();
+                } else {
+                    window.location.href = 'http://localhost:3000/login';
+                }
+            }, 'json');
+        }
 
         $(document).ready(function(){
-            mostrarUsuario();
+            access();
 
             $('#salir').click(e => {
-                $.post('http://localhost:3000/salir', (data)=>{
+                $.post('http://localhost:3000/salir', JSON.stringify({}), (data)=>{
                     console.log(data);
                     if (data.response.salir == true) {
                         window.location.href = 'http://localhost:3000/login';

@@ -29,16 +29,16 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="duiIngresar">DUI</label>
-                                    <input type="text" name="duiIngresar" id="duiIngresar" class="form-control" placeholder="10230789-3"
+                                    <input type="text" name="duiIngresar" id="duiIngresar" class="form-control" placeholder="09583162-4"
                                     pattern="[0-9]{8}[-][0-9]{1}" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="password">Password</label>
+                                    <label for="passwordIngresar">Password</label>
                                     <input type="password" name="passwordIngresar" id="passwordIngresar" class="form-control" placeholder="Password"
                                     pattern=".{6,16}">
                                 </div>
                                 <div class="form-group">
-                                    <button type="submit" class="btn btn-primary">Login</button>
+                                    <button type="submit" class="btn btn-primary" id="btnLogin" disabled>Login</button>
                                 </div>
                             </form>
                         </div>
@@ -58,7 +58,7 @@
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <img src="" alt="" id="preview" class="img-circle img-fluid ">
-                                        <canvas id="previsualizar" class="img-circle img-fluid "></canvas>
+                                        <canvas id="previsualizar" class="img-circle img-fluid " hidden></canvas>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -67,13 +67,13 @@
                                     pattern="(^[A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+(([\s][A-ZÁÉÍÓÚÑ]{1}[a-záéíóúñ]{1,20})+)*$" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="name">DUI</label>
-                                    <input type="text" name="name" id="dui" class="form-control" placeholder="10230789-3"
+                                    <label for="dui">DUI</label>
+                                    <input type="text" name="dui" id="dui" class="form-control" placeholder="09583162-4"
                                     pattern="[0-9]{8}[-][0-9]{1}" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="name">Telefono</label>
-                                    <input type="tel" name="name" id="tel" class="form-control" placeholder="2312-1134"
+                                    <label for="tel">Telefono</label>
+                                    <input type="tel" name="tel" id="tel" class="form-control" placeholder="2312-1134"
                                     pattern="[0-9]{4}[ |-][0-9]{4}" required>
                                 </div>
                                 <div class="form-group">
@@ -87,7 +87,7 @@
                                     pattern=".{6,16}" required title="Ingresé como minimo 6 caracteres y como mázimo 16">
                                 </div>
                                 <div class="form-group">
-                                    <button type="submit" class="btn btn-primary">Registrar</button>
+                                    <button type="submit" class="btn btn-primary" id="btnRegister" disabled>Registrar</button>
                                 </div>
                             </form>
                         </div>
@@ -114,6 +114,18 @@
                 }
             }, 'json')
         }
+        function isDUI(dui) {
+            const duiRegExp = /(^\d{8})-(\d$)/;
+            if (!duiRegExp.test(dui)) return false;
+
+            let sum = 0;
+            const [digits, verifier] = dui.split('-');
+            for (let i = 0; i < digits.length; i++) {
+                sum += Number(digits[i]) * (digits.length + 1 - i);
+            }
+
+            return Number(verifier) === (10 - (sum % 10)) % 10 && sum > 0;
+        }
         $(document).ready(function(){
             access();
             testai();
@@ -128,11 +140,31 @@
                     img.onload = function(){
                         canvas.width = 250;
                         canvas.height = 250;
-                        context.drawImage(img, canvas.width/2 - img.width/2, canvas.height/2 - img.height/2);
+                        context.drawImage(img, 0, 0, 250, 250);
                     }
                     img.src = reader.result;
                 }
                 reader.readAsDataURL(file);
+            });
+
+            $('#dui').on('keyup', function(){
+                if (!isDUI($(this).val())) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                    $('#btnRegister').attr('disabled', true);
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $('#btnRegister').attr('disabled', false);
+                }
+            });
+
+            $('#duiIngresar').on('keyup', function(){
+                if (!isDUI($(this).val())) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                    $('#btnLogin').attr('disabled', true);
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $('#btnLogin').attr('disabled', false);
+                }
             });
 
             $('#frmIngresar').submit(e => {
@@ -176,7 +208,7 @@
                     telefono = $('#frmRegistro #tel').val(),
                     correo = $('#frmRegistro #email').val(),
                     password = $('#frmRegistro #password').val(),
-                    foto = $('#frmRegistro #foto')[0].files[0].name,
+                    login = true,
                     data = {action, name, dui, telefono, correo, password, foto, pixeles};
                 console.log(data);
                 $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (res, estatus) => {

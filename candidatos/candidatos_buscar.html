@@ -3,7 +3,7 @@
         <h3>Lista de candidatos</h3>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarCandidato" aria-label="Close"></button>
     </div>
-    <div class="card-body">
+    <div class="card-body" style="overflow: auto; max-height: 80vh;">
         <table class="table table-striped" id="tblCandidato">
             <thead>
                 <tr>
@@ -76,12 +76,12 @@
         if (confirm(`¿Esta seguro de eliminar este candidato: ${candidato.Nombre}?`)) {
             let data = {
                 action: 'eliminar',
-                id: candidato.Id_Candidato
+                id: candidato.Id_Candidato,
+                actualizarFoto: false
             };
             $.post('http://localhost:3000/administrar_candidatos', JSON.stringify(data), (resp, status) => {
-                console.log(resp);
-                $("#mensaje").toggleClass("d-none").text(resp.response.msg);
-                    if (resp.response.status == 'ok') {
+                $("#mensaje").toggleClass("d-none").text(resp.response[0].msg);
+                    if (resp.response[0].status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")

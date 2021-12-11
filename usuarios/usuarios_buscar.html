@@ -3,7 +3,7 @@
         <h3>Lista de usuarios</h3>
         <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#cardBuscarUsuario" aria-label="Close"></button>
     </div>
-    <div class="col-md-12 card-body">
+    <div class="col-md-12 card-body" style="overflow: auto; max-height: 80vh;">
         <table class="table table-striped" id="tblUsuarios">
             <thead>
                 <tr>
@@ -36,6 +36,7 @@
             $('#tblUsuarios tbody').html('');
             let tbody = $('#tblUsuarios tbody'),
                 html = '';
+                console.log(resp);
             if (resp.response.length > 0) {
                 resp.response.forEach(usuario => {
                     html += `
@@ -46,7 +47,7 @@
                             <td>${usuario.Telefono}</td>
                             <td>${usuario.Correo}</td>
                             <td>${usuario.Contrasegna}</td>
-                            <td><img src="" width="100" height="100"></td>
+                            <td><img src="${usuario.Img_Src}" width="100" height="100"></td>
                             <td>
                                 <button class="btn btn-danger btn-sm m-1" onclick='eliminarUsuario(${JSON.stringify(usuario)})'>
                                     <i class="fa fa-trash">Eliminar</i>
@@ -75,11 +76,13 @@
         if (confirm(`¿Esta seguro de eliminar este usuario: ${usuario.Nombre}?`)) {
             let data = {
                 action: 'eliminar',
-                id: usuario.Id_Usuario
+                id: usuario.Id_Usuario,
+                actualizarFoto: false
             };
             $.post('http://localhost:3000/administrar_usuarios', JSON.stringify(data), (resp, status) => {
+                console.log(resp);
                 $("#mensaje").toggleClass("d-none").text(resp.response.msg);
-                    if (resp.response.status == 'ok') {
+                    if (resp.response[0].status == 'ok') {
                         limpiarcampos();
                         $("#mensaje")
                             .removeClass("alert-danger")
